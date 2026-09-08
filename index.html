@@ -218,12 +218,12 @@
       <div class="d" id="todayDate">——</div>
       <div class="w" id="todayWeek">——</div>
     </div>
-    <div class="wx" id="wxCard" title="点击刷新天气">
+    <div class="wx" id="wxCard" title="点击切换城市（默认：成都市温江区）">
       <div class="ic" id="wxIco">⛅</div>
       <div>
         <div class="m1"><span id="wxTemp">--</span><small id="wxUnit">°C</small></div>
         <div class="m2" id="wxDesc">正在获取天气…</div>
-        <div class="city" id="wxCity">定位中</div>
+        <div class="city" id="wxCity">成都市温江区</div>
       </div>
     </div>
   </header>
@@ -473,7 +473,11 @@ function renderDate(){
     "星期" + wd[now.getDay()] + " · 看看今天要上什么课";
 }
 
-/* ---------- 7. 实时天气（免 Key：IP 定位 + Open-Meteo） ---------- */
+/* ---------- 7. 实时天气（免 Key） ----------
+   固定默认城市：成都市温江区（不再用 IP 自动定位，避免误跳）
+   点击天气卡片可手动切换城市，选择会保存在本机浏览器 */
+var DEFAULT_CITY = { city:"成都市温江区", lat:30.68, lon:103.85 };
+var CITY_STORE = "kcb_7_9_city";
 var WMO = [
   [0,"晴","☀️"],[1,"晴间多云","🌤️"],[2,"多云","⛅"],[3,"阴","☁️"],
   [45,"雾","🌫️"],[48,"雾凇","🌫️"],
@@ -507,7 +511,7 @@ function wxFail(){
   document.getElementById("wxIco").textContent = "😶";
   document.getElementById("wxTemp").textContent = "--";
   document.getElementById("wxDesc").textContent = "天气暂时获取不到";
-  document.getElementById("wxCity").textContent = "点击卡片可重试";
+  document.getElementById("wxCity").textContent = "点击卡片可切换城市";
 }
 function fetchJson(url, ms){
   var ctrl = ("AbortController" in window) ? new AbortController() : null;
@@ -540,29 +544,56 @@ async function loadWeatherFromWttr(lat, lon, city){
   var lo = (w.weather && w.weather[0]) ? w.weather[0].mintempC : null;
   setWeather(city, cc.temp_C, desc, pickEmoji(desc), cc.humidity, hi, lo);
 }
-async function loadWeather(){
-  var lat=null, lon=null, city="";
+function storageGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function storageSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function loadCityCfg(){
   try{
-    var ip2 = await fetchJson("https://ipwho.is/");
-    lat = ip2.latitude; lon = ip2.longitude;
-    city = ip2.city || ip2.region || "你所在的城市";
-    if(!lat){ throw new Error("no lat"); }
-  }catch(e){
-    try{
-      var ip = await fetchJson("https://ipapi.co/json/");
-      lat = ip.latitude; lon = ip.longitude;
-      city = (ip.city && ip.city !== "") ? ip.city : (ip.region || "你所在的城市");
-      if(!lat){ throw new Error("no lat"); }
-    }catch(e2){ wxFail(); return; }
+    var raw = storageGet(CITY_STORE);
+    if(!raw) return null;
+    var o = JSON.parse(raw);
+    if(o && o.lat && o.lon) return o;
+  }catch(e){}
+  return null;
+}
+/* 城市名 → 坐标：open-meteo 地理编码，失败再试 OpenStreetMap */
+async function geocodeCity(name){
+  try{
+    var g = await fetchJson("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(name)+"&count=1&language=zh&format=json", 8000);
+    if(g && g.results && g.results[0]) return { lat:g.results[0].latitude, lon:g.results[0].longitude };
+  }catch(e){}
+  try{
+    var n = await fetchJson("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(name+" 中国"), 8000);
+    if(n && n[0]) return { lat:parseFloat(n[0].lat), lon:parseFloat(n[0].lon) };
+  }catch(e){}
+  return null;
+}
+async function switchCity(){
+  var name = prompt("请输入要显示天气的城市\n例如：成都市温江区、北京、上海…", "");
+  if(!name) return;
+  name = name.trim();
+  if(!name) return;
+  var loc = await geocodeCity(name);
+  if(!loc){
+    alert("没能解析这个城市，请换个写法再试（如直接写“成都”）；\n也可以继续使用默认的成都市温江区。");
+    return;
   }
+  storageSet(CITY_STORE, JSON.stringify({ city:name, lat:loc.lat, lon:loc.lon }));
+  document.getElementById("wxCity").textContent = name;
+  document.getElementById("wxDesc").textContent = "正在获取天气…";
+  loadWeather();
+}
+async function loadWeather(){
+  var cfg = loadCityCfg() || DEFAULT_CITY;
+  var card = document.getElementById("wxCard");
+  if(card) card.title = "点击切换城市 · 当前：" + cfg.city;
   try{
-    var w = await fetchJson("https://api.open-meteo.com/v1/forecast?latitude="+lat+
-      "&longitude="+lon+"&current=temperature_2m,relative_humidity_2m,weather_code"+
+    var w = await fetchJson("https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+
+      "&longitude="+cfg.lon+"&current=temperature_2m,relative_humidity_2m,weather_code"+
       "&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1");
-    renderWeather(city, w.current.temperature_2m, w.current.weather_code,
+    renderWeather(cfg.city, w.current.temperature_2m, w.current.weather_code,
       w.current.relative_humidity_2m, w.daily.temperature_2m_max[0], w.daily.temperature_2m_min[0]);
   }catch(e){
-    try{ await loadWeatherFromWttr(lat, lon, city); }
+    try{ await loadWeatherFromWttr(cfg.lat, cfg.lon, cfg.city); }
     catch(e2){ wxFail(); }
   }
 }
@@ -601,7 +632,7 @@ document.getElementById("resetBtn").addEventListener("click", function(){
     clearSaved(); renderAll(true); location.reload();
   }
 });
-document.getElementById("wxCard").addEventListener("click", loadWeather);
+document.getElementById("wxCard").addEventListener("click", switchCity);
 
 renderAll(true);
 renderDate();
