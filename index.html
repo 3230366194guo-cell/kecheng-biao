@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>温中实验中学七年级九班课程表</title>
 <style>
   :root{
@@ -489,19 +490,24 @@ function wmoInfo(code){
   for(var i=0;i<WMO.length;i++){ if(WMO[i][0] === code) return WMO[i]; }
   return [code,"天气","🌡️"];
 }
+function setWeather(city, temp, desc, emoji, hum, hi, lo){
+  document.getElementById("wxIco").textContent = emoji || "🌡️";
+  document.getElementById("wxTemp").textContent = Math.round(temp);
+  var s = desc || "天气";
+  if(hi !== undefined && hi !== null){ s += " · 最高"+Math.round(hi)+"° / 最低"+Math.round(lo)+"°"; }
+  if(hum !== undefined && hum !== null){ s += " · 湿度"+Math.round(hum)+"%"; }
+  document.getElementById("wxDesc").innerHTML = s;
+  document.getElementById("wxCity").textContent = city;
+}
 function renderWeather(city, temp, code, hum, hi, lo){
   var info = wmoInfo(code);
-  document.getElementById("wxIco").textContent = info[2];
-  document.getElementById("wxTemp").textContent = Math.round(temp);
-  document.getElementById("wxDesc").innerHTML =
-    info[1] + " · 最高"+Math.round(hi)+"° / 最低"+Math.round(lo)+"° · 湿度"+Math.round(hum)+"%";
-  document.getElementById("wxCity").textContent = city;
+  setWeather(city, temp, info[1], info[2], hum, hi, lo);
 }
 function wxFail(){
   document.getElementById("wxIco").textContent = "😶";
   document.getElementById("wxTemp").textContent = "--";
   document.getElementById("wxDesc").textContent = "天气暂时获取不到";
-  document.getElementById("wxCity").textContent = "稍后再试试吧";
+  document.getElementById("wxCity").textContent = "点击卡片可重试";
 }
 function fetchJson(url, ms){
   var ctrl = ("AbortController" in window) ? new AbortController() : null;
@@ -510,6 +516,29 @@ function fetchJson(url, ms){
     if(!res.ok) throw new Error("HTTP "+res.status);
     return res.json();
   }).finally(function(){ if(to) clearTimeout(to); });
+}
+/* 备用天气源：wttr.in（open-meteo 不可达时自动切换） */
+function pickEmoji(desc){
+  var d = desc || "";
+  if(/雷|thunder|storm/i.test(d)) return "⛈️";
+  if(/雪|snow/i.test(d)) return "🌨️";
+  if(/雨|rain|drizzle|shower/i.test(d)) return "🌧️";
+  if(/晴|clear|sun/i.test(d)) return "☀️";
+  if(/阴|overcast/i.test(d)) return "☁️";
+  if(/多云|partly|cloud/i.test(d)) return "⛅";
+  if(/雾|fog|mist|haze/i.test(d)) return "🌫️";
+  return "🌡️";
+}
+async function loadWeatherFromWttr(lat, lon, city){
+  var w = await fetchJson("https://wttr.in/"+lat+","+lon+"?format=j1&lang=zh", 9000);
+  var cc = w.current_condition && w.current_condition[0];
+  if(!cc){ throw new Error("bad wttr"); }
+  var desc = "";
+  if(cc.lang_zh && cc.lang_zh[0]) desc = cc.lang_zh[0].value;
+  else if(cc.weatherDesc && cc.weatherDesc[0]) desc = cc.weatherDesc[0].value;
+  var hi = (w.weather && w.weather[0]) ? w.weather[0].maxtempC : null;
+  var lo = (w.weather && w.weather[0]) ? w.weather[0].mintempC : null;
+  setWeather(city, cc.temp_C, desc, pickEmoji(desc), cc.humidity, hi, lo);
 }
 async function loadWeather(){
   var lat=null, lon=null, city="";
@@ -532,7 +561,10 @@ async function loadWeather(){
       "&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1");
     renderWeather(city, w.current.temperature_2m, w.current.weather_code,
       w.current.relative_humidity_2m, w.daily.temperature_2m_max[0], w.daily.temperature_2m_min[0]);
-  }catch(e){ wxFail(); }
+  }catch(e){
+    try{ await loadWeatherFromWttr(lat, lon, city); }
+    catch(e2){ wxFail(); }
+  }
 }
 
 /* ---------- 8. 汇总渲染 ---------- */
