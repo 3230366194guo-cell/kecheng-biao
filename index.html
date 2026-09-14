@@ -27,7 +27,7 @@
   .topbar{
     background:rgba(255,255,255,.74); backdrop-filter:blur(12px);
     border:1px solid rgba(255,255,255,.9); border-radius:22px; box-shadow:var(--shadow);
-    padding:15px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:16px 20px; display:flex; flex-direction:column; align-items:center; gap:11px;
     position:relative; overflow:hidden;
   }
   .topbar::after{
@@ -35,52 +35,66 @@
     background:radial-gradient(circle at 35% 35%, rgba(233,185,73,.20), rgba(108,140,255,.10) 60%, transparent 72%);
     pointer-events:none;
   }
-  .brand{display:flex;align-items:center;gap:13px;min-width:0}
+  /* 三行居中布局：标题行 / 日期行 / 天气+消息行 */
+  .hbrow{display:flex;align-items:center;justify-content:center;gap:13px;flex-wrap:wrap;position:relative;z-index:1}
   .logo{
-    width:56px;height:56px;border-radius:50%;flex:none;background:#fff;object-fit:contain;padding:5px;
+    width:54px;height:54px;border-radius:50%;flex:none;background:#fff;object-fit:contain;padding:5px;
     box-shadow:0 6px 16px rgba(96,130,220,.28);
   }
-  .brand h1{
-    font-size:22px;letter-spacing:1px;line-height:1.3;
+  .hbrow h1{
+    font-size:23px;letter-spacing:1.5px;line-height:1.3;text-align:center;
     background:linear-gradient(120deg,#5561c8,#3f8f8f 55%,#c89a3c);
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
-  .spacer{flex:1}
 
-  .today-block{position:relative;z-index:1;min-width:290px}
-  .dateline{font-size:19px;font-weight:700;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .dateline{
+    position:relative;z-index:1;display:flex;align-items:baseline;justify-content:center;gap:12px;flex-wrap:wrap;
+    font-size:19px;font-weight:700;
+  }
   .dateline .dd{color:#3f3a45}
   .dateline .tt{color:#3f7fdd;font-variant-numeric:tabular-nums;font-size:21px}
   .dateline .ww{color:#8a6d1f}
   .dateline .ll{color:#2e9e7f;font-size:16px}
   .dateline .ll::before{content:"📍";margin-right:3px;font-size:13px}
-  .live-now{margin-top:4px;font-size:12.5px;color:#9b93a3}
+  .live-now{text-align:center;font-size:12.5px;color:#9b93a3;position:relative;z-index:1}
   .live-now b{color:#16a34a}
 
-  .wxwrap{position:relative;z-index:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .wx{
-    display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;
-    background:linear-gradient(135deg,#eef3ff,#e9f9f2);
-    border:1px solid rgba(120,150,220,.25); border-radius:16px; padding:7px 14px 7px 11px;
-    transition:transform .15s;
+  .wxrow{position:relative;z-index:1;display:flex;align-items:stretch;justify-content:center;gap:9px;flex-wrap:wrap}
+  .hourly{display:flex;gap:9px}
+  /* 当前天气 / 未来整点：完全一致的卡片尺寸（要求4） */
+  .wxcur,.hourly .h{
+    width:88px;min-height:104px;text-align:center;background:#fff;border:1px solid #e6edfb;border-radius:15px;
+    padding:7px 5px 8px;box-shadow:0 3px 8px rgba(90,110,180,.06);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   }
-  .wx:hover{transform:translateY(-2px)}
-  .wx .ic{font-size:30px;line-height:1}
-  .wx .m1{font-size:16px;font-weight:800;display:flex;align-items:baseline;gap:4px}
-  .wx .m1 small{font-size:11px;font-weight:600;color:var(--muted)}
-  .wx .m2{font-size:11px;color:#6b728e;margin-top:1px;max-width:150px}
-  .hourly{display:flex;gap:7px}
-  .hourly .h{
-    width:76px;text-align:center;background:#fff;border:1px solid #e6edfb;border-radius:14px;
-    padding:6px 3px 7px;box-shadow:0 3px 8px rgba(90,110,180,.06);
-  }
-  .hourly .h .ht{font-size:11px;color:#6b7280;white-space:nowrap}
-  .hourly .h .hi{font-size:21px;line-height:1.25}
-  .hourly .h .hh{font-size:10px;color:#94a3b8}
-  .hourly .h .hv{font-size:13.5px;font-weight:700;color:#334155}
+  .wxcur{cursor:pointer;transition:transform .15s;background:linear-gradient(180deg,#f4fbf6,#fff);border-color:#bfe7cd}
+  .wxcur:hover{transform:translateY(-2px)}
+  .wxcur .ht,.hourly .h .ht{font-size:11px;color:#6b7280;white-space:nowrap}
+  .wxcur .hi,.hourly .h .hi{font-size:24px;line-height:1.2}
+  .wxcur .hh,.hourly .h .hh{font-size:10px;color:#94a3b8;white-space:nowrap}
+  .wxcur .hv,.hourly .h .hv{font-size:14px;font-weight:700;color:#334155}
   .hourly .h.now{border-color:#9fd8b4;background:linear-gradient(180deg,#f2fdf6,#fff)}
 
-  .topbtns{position:relative;z-index:1;display:flex;gap:9px;align-items:center}
+  /* 查看消息：与天气卡片同宽同高（要求5） */
+  .wxmsg{
+    width:88px;min-height:104px;border-radius:15px;cursor:pointer;font:inherit;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;
+    background:linear-gradient(135deg,#eef3ff,#e9f9f2);border:1px solid rgba(120,150,220,.25);
+    box-shadow:0 3px 8px rgba(90,110,180,.08);transition:transform .15s, filter .15s;
+  }
+  .wxmsg:hover{transform:translateY(-2px)}
+  .wxmsg .ic{font-size:24px;line-height:1.2}
+  .wxmsg .t{font-size:11.5px;color:#4a5f8f;font-weight:700;white-space:nowrap}
+  .wxmsg .cnt{
+    position:absolute;top:-6px;right:-6px;background:#ff4f6a;color:#fff;font-size:10.5px;
+    min-width:17px;height:17px;line-height:17px;border-radius:99px;padding:0 4px;box-shadow:0 2px 6px rgba(255,80,110,.45);
+  }
+  .wxmsg.flash{animation:msgFlash 1.5s infinite}
+  @keyframes msgFlash{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,79,106,.55);transform:translateY(0)}
+    50%{box-shadow:0 0 0 10px rgba(255,79,106,0);transform:translateY(-2px)}
+  }
+
   .btn{
     border:none;cursor:pointer;font:inherit;font-weight:700;color:#fff;border-radius:14px;
     padding:9px 16px;background:linear-gradient(135deg,#7b95ff,#5fbf9b);
@@ -90,16 +104,6 @@
   .btn.ghost{background:#fff;color:#5b6b8c;border:1px solid #dde5f5;box-shadow:0 3px 8px rgba(90,110,180,.08)}
   .btn.sm{padding:7px 12px;font-size:13px;border-radius:11px}
   .btn.danger{background:linear-gradient(135deg,#ff8f8f,#e8607a);box-shadow:0 6px 14px rgba(230,96,122,.28)}
-  .msgbtn{position:relative}
-  .msgbtn .cnt{
-    position:absolute;top:-6px;right:-6px;background:#ff4f6a;color:#fff;font-size:10.5px;
-    min-width:17px;height:17px;line-height:17px;border-radius:99px;padding:0 4px;box-shadow:0 2px 6px rgba(255,80,110,.45);
-  }
-  .msgbtn.flash{animation:msgFlash 1.5s infinite}
-  @keyframes msgFlash{
-    0%,100%{box-shadow:0 0 0 0 rgba(255,79,106,.55), 0 6px 14px rgba(230,96,122,.3);transform:translateY(0)}
-    50%{box-shadow:0 0 0 10px rgba(255,79,106,0), 0 6px 14px rgba(230,96,122,.3);transform:translateY(-2px)}
-  }
 
   .weekend-banner{
     display:none;margin-top:16px;text-align:center;
@@ -159,11 +163,6 @@
     70%{box-shadow:0 0 0 14px rgba(34,197,94,0), 0 6px 16px rgba(34,197,94,.18)}
     100%{box-shadow:0 0 0 0 rgba(34,197,94,0), 0 6px 16px rgba(34,197,94,.35)}
   }
-  .badge{
-    position:absolute;top:-8px;right:-4px;font-size:10.5px;color:#fff;
-    background:linear-gradient(120deg,#34d399,#22c55e);padding:2.5px 8px;border-radius:99px;
-    letter-spacing:0;box-shadow:0 3px 10px rgba(34,197,94,.45);white-space:nowrap;z-index:2;
-  }
   .empty{
     height:100%;border-radius:14px;background:repeating-linear-gradient(135deg,#faf8f2 0 6px,#f6f3ea 6px 12px);
     display:flex;align-items:center;justify-content:center;color:#d6cfc0;font-size:16px;letter-spacing:2px;
@@ -178,13 +177,10 @@
   tr.noon .noon-t{letter-spacing:1px;color:#b3a887;font-size:12.5px;background:transparent;font-weight:600}
   tr.noon td .ico{font-size:15px;margin-right:6px;letter-spacing:0}
 
-  /* ================= 页脚 ================= */
-  .foot{margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12.5px}
+  /* ================= 页脚（设置按钮在最底部、退出登录前边） ================= */
+  .foot{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12.5px}
   .stat{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 14px;display:inline-flex;gap:6px;align-items:center;box-shadow:0 3px 8px rgba(90,80,60,.06)}
   .stat b{color:#e0564f;font-size:15px}
-  .foot .tip{flex:1;min-width:200px}
-  .who{color:#5b6b8c}
-  .who b{color:#2e9e7f}
   a.link{color:#c98f8f;cursor:pointer;text-decoration:none;border-bottom:1px dashed}
   a.link:hover{color:#e0564f}
 
@@ -228,6 +224,34 @@
   .msgitem .h{display:flex;gap:8px;align-items:center;font-size:12px;color:#9b93a3;margin-bottom:5px;flex-wrap:wrap}
   .msgitem .c{font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
   .msgitem .ops{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  /* 消息附件（图片 / 文档） */
+  .atts{margin-top:9px;display:flex;flex-wrap:wrap;gap:9px}
+  .atts img{max-width:220px;max-height:220px;border-radius:12px;border:1px solid var(--line);display:block;background:#fff}
+  .attdoc{
+    display:inline-flex;align-items:center;gap:7px;background:#f7f9ff;border:1px solid #e3eaf9;border-radius:11px;
+    padding:7px 11px;font-size:12.5px;color:#4a5f8f;text-decoration:none;max-width:100%;
+  }
+  .attdoc:hover{background:#eef3ff}
+  .attdoc small{color:#9aa6bd}
+  .chips{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;background:#f7f9ff;border:1px solid #e3eaf9;border-radius:11px;
+    padding:5px 9px;font-size:12px;color:#4a5f8f;max-width:100%;
+  }
+  .chip .x{cursor:pointer;color:#c08f9a;font-weight:700}
+  .chip img{width:26px;height:26px;object-fit:cover;border-radius:6px}
+  .paste-zone{
+    border:1px dashed #cfd8ee;border-radius:12px;padding:8px 10px;font-size:12px;color:#9aa6bd;background:#fbfcff;
+  }
+  /* 学校 / 班级 层级列表 */
+  .tree{margin-top:8px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .tree .srow{display:flex;align-items:center;gap:9px;background:#f7f9ff;padding:9px 12px;border-bottom:1px solid var(--line);font-weight:700;color:#4a5f8f}
+  .tree .srow .em{width:26px;height:26px;border-radius:50%;background:#fff;object-fit:contain;border:1px solid #e3eaf9}
+  .tree .srow .meta{margin-left:auto;font-weight:400;font-size:12px;color:#9aa6bd}
+  .tree .crow{display:flex;align-items:center;gap:9px;padding:8px 12px 8px 34px;border-bottom:1px solid #f1eee7;font-size:13.5px;color:#57526b}
+  .tree .crow::before{content:"└";color:#c9c3d6;margin-right:2px}
+  .tree .crow:last-child{border-bottom:none}
+  .tree .crow .meta{margin-left:auto;font-size:12px;color:#9aa6bd}
   #toast{
     position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
     background:rgba(52,48,66,.94);color:#fff;padding:10px 18px;border-radius:99px;font-size:13.5px;
@@ -236,11 +260,11 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   @media (max-width:900px){
-    .brand h1{font-size:17px}
-    .today-block{min-width:0}
-    .dateline{font-size:16px}
+    .hbrow h1{font-size:18px}
+    .dateline{font-size:16px;gap:9px}
     .dateline .tt{font-size:18px}
-    .hourly .h{width:66px}
+    .wxcur,.hourly .h,.wxmsg{width:70px;min-height:96px}
+    .wxcur .hi,.hourly .h .hi,.wxmsg .ic{font-size:19px}
   }
   @media (max-width:700px){
     body{padding:14px 10px 30px}
@@ -251,7 +275,12 @@
     th{font-size:14px;letter-spacing:1px}
     .tlab{font-size:13px}
     .tlab small{font-size:10px;letter-spacing:1px}
-    .hourly .h{width:60px}
+    .hbrow h1{font-size:16px}
+    .logo{width:44px;height:44px}
+    .wxcur,.hourly .h,.wxmsg{width:62px;min-height:88px}
+    .wxcur .ht,.hourly .h .ht{font-size:10px}
+    .wxcur .hh,.hourly .h .hh{font-size:9.5px}
+    .wxmsg .t{font-size:10px}
     .frm{grid-template-columns:1fr}
     .frm label{text-align:left}
   }
@@ -261,37 +290,36 @@
 <div class="wrap">
 
   <header class="topbar">
-    <div class="brand">
+    <!-- 第 1 行：校徽 + 标题（居中） -->
+    <div class="hbrow">
       <img class="logo" id="schoolLogo" src="" alt="校徽">
       <h1 id="schoolTitle">课程表</h1>
     </div>
 
-    <div class="today-block">
-      <div class="dateline">
-        <span class="dd" id="dDate">——</span>
-        <span class="tt" id="dTime">--:--</span>
-        <span class="ww" id="dWeek">——</span>
-        <span class="ll" id="dLoc">——</span>
-      </div>
-      <div class="live-now" id="liveNow"></div>
+    <!-- 第 2 行：日期 时间 星期 定位（居中） -->
+    <div class="dateline">
+      <span class="dd" id="dDate">——</span>
+      <span class="tt" id="dTime">--:--</span>
+      <span class="ww" id="dWeek">——</span>
+      <span class="ll" id="dLoc">——</span>
     </div>
 
-    <div class="spacer"></div>
+    <div class="live-now" id="liveNow"></div>
 
-    <div class="wxwrap">
-      <div class="wx" id="wxCard" title="点击切换天气城市">
-        <div class="ic" id="wxIco">⛅</div>
-        <div>
-          <div class="m1"><span id="wxTemp">--</span><small>°C</small></div>
-          <div class="m2" id="wxDesc">正在获取天气…</div>
-        </div>
+    <!-- 第 3 行：当前天气 + 未来四个整点 + 查看消息（同高同宽风格） -->
+    <div class="wxrow">
+      <div class="wxcur" id="wxCard" title="点击切换天气城市（当前天气）">
+        <div class="ht">当前天气</div>
+        <div class="hi" id="wxIco">⛅</div>
+        <div class="hh" id="wxHum">正在获取…</div>
+        <div class="hv"><span id="wxTemp">--</span>℃</div>
       </div>
       <div class="hourly" id="hourly"></div>
-    </div>
-
-    <div class="topbtns">
-      <button class="btn msgbtn" id="msgBtn">查看消息<span class="cnt" id="msgCnt" style="display:none">0</span></button>
-      <button class="btn ghost" id="setBtn">设置</button>
+      <button class="wxmsg" id="msgBtn" title="查看消息">
+        <span class="ic">📢</span>
+        <span class="t">查看消息</span>
+        <span class="cnt" id="msgCnt" style="display:none">0</span>
+      </button>
     </div>
   </header>
 
@@ -307,8 +335,7 @@
 
   <footer class="foot">
     <div class="stat">📆 本周课程 <b id="statCnt">0</b> 节</div>
-    <div class="who" id="whoBox">未登录</div>
-    <div class="tip">💡 登录后可双击课程直接修改；管理员在「设置」里维护学校、班级、用户、课表与消息。</div>
+    <button class="btn ghost" id="setBtn">⚙️ 设置</button>
     <a class="link" id="logoutLink" style="display:none">退出登录</a>
   </footer>
 </div>
@@ -356,7 +383,7 @@
 ================================================================ */
 
 /* ---------------- 常量与默认数据 ---------------- */
-var STORE_KEY = "kcb_v2";
+var STORE_KEY = "kcb_v3";
 var DAYS = ["星期一","星期二","星期三","星期四","星期五"];
 var WEEK_CN = ["日","一","二","三","四","五","六"];
 var DEFAULT_EMBLEM = "data:image/webp;base64,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";
@@ -399,27 +426,48 @@ function defaultGrid(){
     ["数学","英语",null,"地理/历史","语文"]
   ];
 }
+/* 数据模型（v3）：学校列表 → 每所学校下的班级列表 → 用户 / 课表 / 消息 */
 function seedData(){
   return {
-    school:{ name:"温中实验中学", emblem:DEFAULT_EMBLEM, location:"成都温江", lat:30.68, lon:103.85 },
-    classes:[{id:"c1", name:"七年级九班"}],
+    schools:[{ id:"s1", name:"温中实验中学", emblem:DEFAULT_EMBLEM, location:"成都温江", lat:30.68, lon:103.85 }],
+    classes:[{ id:"c1", schoolId:"s1", name:"七年级九班" }],
     users:[
-      {id:"u_admin", username:"admin", pass:"", name:"管理员", classId:"c1", duty:"班主任", gender:"男", phone:"", role:"admin"},
-      {id:"u_user",  username:"jiazhang", pass:"", name:"家长用户", classId:"c1", duty:"家长", gender:"女", phone:"", role:"user"}
+      {id:"u_admin", username:"admin", pass:"", name:"系统管理员", schoolId:"s1", classId:"c1", duty:"系统管理员", gender:"男", phone:"", role:"admin"},
+      {id:"u_user",  username:"jiazhang", pass:"", name:"家长用户", schoolId:"s1", classId:"c1", duty:"家长", gender:"女", phone:"", role:"user"}
     ],
     timetables:{ c1:{ periods:defaultPeriods(), grid:defaultGrid(), lunch:{s:"12:40", e:"14:00"} } },
     messages:[],
     session:null,
+    defaultSchoolId:"s1",
     defaultClassId:"c1"
   };
 }
 
-/* ---------------- 数据读写 ---------------- */
+/* ---------------- 数据读写（含 v2 → v3 自动迁移） ---------------- */
 var data = null;
 function loadData(){
   try{
     var raw = localStorage.getItem(STORE_KEY);
-    if(raw){ var o = JSON.parse(raw); if(o && o.school && o.classes) return o; }
+    if(raw){
+      var o = JSON.parse(raw);
+      if(o && o.schools && o.classes) return o;
+    }
+  }catch(e){}
+  /* 迁移老版本（单学校结构） */
+  try{
+    var old = JSON.parse(localStorage.getItem("kcb_v2") || "null");
+    if(old && old.school && old.classes){
+      var sid = "s1";
+      var classes = old.classes.map(function(c){ return { id:c.id, schoolId:sid, name:c.name }; });
+      var users = (old.users||[]).map(function(u){ u.schoolId = sid; return u; });
+      return {
+        schools:[{ id:sid, name:old.school.name, emblem:old.school.emblem, location:old.school.location, lat:old.school.lat, lon:old.school.lon }],
+        classes:classes, users:users, timetables:old.timetables || {}, messages:old.messages || [],
+        session:old.session || null,
+        defaultSchoolId:sid,
+        defaultClassId:old.defaultClassId || (classes[0] ? classes[0].id : null)
+      };
+    }
   }catch(e){}
   return seedData();
 }
@@ -468,11 +516,33 @@ function classById(id){
   return null;
 }
 function className(id){ var c = classById(id); return c ? c.name : "未分班"; }
+function schoolById(id){
+  for(var i=0;i<data.schools.length;i++){ if(data.schools[i].id === id) return data.schools[i]; }
+  return null;
+}
+function classesOfSchool(sid){
+  return data.classes.filter(function(c){ return c.schoolId === sid; });
+}
+function classSchoolId(cid){
+  var c = classById(cid);
+  return c ? c.schoolId : (data.schools[0] ? data.schools[0].id : null);
+}
 function viewClassId(){
   var u = currentUser();
   if(u && u.classId && classById(u.classId)) return u.classId;
   if(data.defaultClassId && classById(data.defaultClassId)) return data.defaultClassId;
   return data.classes.length ? data.classes[0].id : null;
+}
+function viewSchoolId(){
+  var u = currentUser();
+  if(u && u.schoolId && schoolById(u.schoolId)) return u.schoolId;
+  var cid = viewClassId();
+  if(cid) return classSchoolId(cid);
+  if(data.defaultSchoolId && schoolById(data.defaultSchoolId)) return data.defaultSchoolId;
+  return data.schools.length ? data.schools[0].id : null;
+}
+function currentSchool(){
+  return schoolById(viewSchoolId()) || (data.schools[0] || { name:"", emblem:DEFAULT_EMBLEM, location:"", lat:30.68, lon:103.85 });
 }
 function canEditClass(cid){
   var u = currentUser();
@@ -491,9 +561,10 @@ function tt(cid){
    一、顶部信息（要求 1、2、3）
 ================================================================ */
 function renderBrand(){
-  $("schoolLogo").src = data.school.emblem || DEFAULT_EMBLEM;
+  var sc = currentSchool();
+  $("schoolLogo").src = sc.emblem || DEFAULT_EMBLEM;
   var cid = viewClassId();
-  $("schoolTitle").textContent = data.school.name + (cid ? className(cid) : "") + "课程表";
+  $("schoolTitle").textContent = (sc.name || "") + (cid ? className(cid) : "") + "课程表";
   document.title = $("schoolTitle").textContent;
 }
 window.kcbDebugTime = null;   /* 测试用：{h:14,m:35} 可模拟当前时间 */
@@ -510,12 +581,9 @@ function renderDateTime(){
   $("dDate").textContent = d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日";
   $("dTime").textContent = pad(d.getHours()) + ":" + pad(d.getMinutes());
   $("dWeek").textContent = "星期" + WEEK_CN[d.getDay()];
-  $("dLoc").textContent = data.school.location || "";
-  var u = currentUser();
-  $("whoBox").innerHTML = u
-    ? ("当前登录：<b>" + esc(u.username) + "</b>（" + esc(u.duty || (u.role==="admin"?"管理员":"用户")) + " · " + esc(className(u.classId)) + "）")
-    : "未登录（可查看课表与消息；登录后可维护本班内容）";
-  $("logoutLink").style.display = u ? "inline" : "none";
+  $("dLoc").textContent = currentSchool().location || "";
+  /* 页脚说明文字已按要求删除，仅保留退出登录入口 */
+  $("logoutLink").style.display = currentUser() ? "inline" : "none";
 }
 
 /* ================================================================
@@ -586,7 +654,7 @@ function renderTable(){
     html += '</tr>';
     if(r === 4){
       html += '<tr class="noon"><td class="time-cell noon-t">' + t.lunch.s + " – " + t.lunch.e + '</td>' +
-              '<td colspan="5"><span class="ico">🍱</span>午　间　休　息　·　好好吃饭休息</td></tr>';
+              '<td colspan="5"><span class="ico">🍱</span>午　间　休　息</td></tr>';
     }
   }
   $("bodyRows").innerHTML = html;
@@ -605,7 +673,6 @@ function renderTable(){
   $("weekendBanner").classList[(gd === 0 || gd === 6) ? "add" : "remove"]("show");
 }
 function buildCell(row, col, name, li){
-  var isLive = (row === li.row && col === li.col && !!li.subject);
   if(!name){
     var e = document.createElement("div");
     e.className = "empty";
@@ -620,12 +687,6 @@ function buildCell(row, col, name, li){
   card.title = DAYS[col] + " · 第" + (row+1) + "节（登录后双击可修改）";
   var hasEmo = (EMO[name] && name.indexOf("/") < 0);
   card.innerHTML = (hasEmo ? '<div class="ico">' + EMO[name] + '</div>' : '') + '<div class="nm">' + esc(name) + '</div>';
-  if(isLive){
-    var b = document.createElement("span");
-    b.className = "badge";
-    b.textContent = "上课中";
-    card.appendChild(b);
-  }
   card.addEventListener("dblclick", function(){
     if(!canEditClass(viewClassId())){ toast("请先登录后再修改课程"); return; }
     startEdit(card, row, col);
@@ -720,17 +781,18 @@ function setCurrent(temp, code, desc, icon, hum){
   $("wxIco").textContent = icon || (code != null ? wmoInfo(code)[2] : "🌡️");
   var s = desc || (code != null ? wmoInfo(code)[1] : "天气");
   if(hum != null) s += " · 湿度" + Math.round(hum) + "%";
-  $("wxDesc").textContent = s;
+  $("wxHum").textContent = s;
+  $("wxCard").title = "当前天气：" + s + "（点击可切换城市）";
 }
 function wxFail(){
   $("wxIco").textContent = "😶";
   $("wxTemp").textContent = "--";
-  $("wxDesc").textContent = "天气获取失败，点击重试";
+  $("wxHum").textContent = "获取失败，点击重试";
   $("hourly").innerHTML = "";
 }
 async function loadWeather(){
-  $("wxDesc").textContent = "正在获取天气…";
-  var s = data.school;
+  $("wxHum").textContent = "正在获取…";
+  var s = currentSchool();
   var url = "https://api.open-meteo.com/v1/forecast?latitude=" + s.lat + "&longitude=" + s.lon +
     "&current=temperature_2m,relative_humidity_2m,weather_code" +
     "&hourly=temperature_2m,relative_humidity_2m,weather_code&timezone=auto&forecast_days=2";
@@ -753,7 +815,7 @@ async function loadWeather(){
   }
 }
 async function loadWeatherWttr(){
-  var s = data.school;
+  var s = currentSchool();
   var w = await fetchJson("https://wttr.in/" + s.lat + "," + s.lon + "?format=j1&lang=zh", 9000);
   var cc = w.current_condition && w.current_condition[0];
   if(!cc) throw new Error("bad wttr");
@@ -773,13 +835,14 @@ async function loadWeatherWttr(){
   renderHourly(list);
 }
 async function switchCity(){
-  var name = prompt("请输入要显示天气的城市（同时更新学校定位显示）\n例如：成都温江、成都、北京", data.school.location || "");
+  var name = prompt("请输入要显示天气的城市（同时更新学校定位显示）\n例如：成都温江、成都、北京", currentSchool().location || "");
   if(!name) return;
   name = name.trim(); if(!name) return;
-  $("wxDesc").textContent = "正在解析城市…";
+  $("wxHum").textContent = "正在解析城市…";
   var loc = await geocodeCity(name);
   if(!loc){ toast("没能解析该城市，请换个写法试试"); loadWeather(); return; }
-  data.school.location = name; data.school.lat = loc.lat; data.school.lon = loc.lon;
+  var sc = currentSchool();
+  sc.location = name; sc.lat = loc.lat; sc.lon = loc.lon;
   saveData(); renderDateTime(); loadWeather(); toast("天气定位已切换：" + name);
 }
 async function geocodeCity(name){
@@ -808,11 +871,100 @@ function updateMsgButton(){
   if(n > 0){ cnt.style.display = "inline-block"; cnt.textContent = n; btn.classList.add("flash"); }
   else{ cnt.style.display = "none"; btn.classList.remove("flash"); }
 }
+/* ---- 附件：图片 / 文档（本机存储，图片自动压缩；支持选择与粘贴） ---- */
+var ATT_LIMIT = 1.6 * 1024 * 1024;     /* 单个附件上限 1.6MB */
+var MSG_ATT_TOTAL = 3 * 1024 * 1024;   /* 单条消息附件总上限 3MB */
+function fmtSize(b){
+  b = b || 0;
+  if(b < 1024) return b + "B";
+  if(b < 1048576) return Math.round(b/1024) + "KB";
+  return (b/1048576).toFixed(2) + "MB";
+}
+function isImgAtt(type, name){
+  return /^image\//.test(type || "") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(name || "");
+}
+function readAttachment(file, cb){
+  if(!file) return;
+  if(file.size > ATT_LIMIT){ toast("附件太大（单个上限 1.6MB）：" + file.name); return; }
+  var isImg = isImgAtt(file.type, file.name);
+  var fr = new FileReader();
+  fr.onload = function(){
+    var raw = { name:file.name || "附件", type:file.type || "file", size:file.size || 0, data:fr.result, img:false };
+    if(!isImg){ cb(raw); return; }
+    var img = new Image();
+    img.onload = function(){
+      try{
+        var max = 1400, w = img.width, h = img.height;
+        if(w > max || h > max){ var k = Math.min(max/w, max/h); w = Math.round(w*k); h = Math.round(h*k); }
+        var cv = document.createElement("canvas");
+        cv.width = w; cv.height = h;
+        cv.getContext("2d").drawImage(img, 0, 0, w, h);
+        var out = cv.toDataURL("image/jpeg", 0.75);
+        cb({ name:(file.name || "粘贴的图片") + (/(\.jpg|\.jpeg|\.png|\.webp|\.gif)$/i.test(file.name||"") ? "" : ".jpg"),
+             type:"image/jpeg", size:Math.round(out.length * 0.75), data:out, img:true });
+      }catch(e){ cb(raw); }
+    };
+    img.onerror = function(){ cb(raw); };
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+function attSumSize(list){ var s = 0; for(var i=0;i<list.length;i++){ s += (list[i].size || 0); } return s; }
+function renderAtts(atts){
+  if(!atts || !atts.length) return "";
+  var h = '<div class="atts">';
+  for(var i=0;i<atts.length;i++){
+    var a = atts[i];
+    if(a.img) h += '<a href="' + a.data + '" target="_blank" title="点击查看大图：' + esc(a.name) + '"><img src="' + a.data + '" alt="' + esc(a.name) + '"></a>';
+    else h += '<a class="attdoc" href="' + a.data + '" download="' + esc(a.name) + '">📄 <span>' + esc(a.name) + '</span> <small>' + fmtSize(a.size) + '</small></a>';
+  }
+  return h + '</div>';
+}
+function attachBoxHtml(prefix){
+  return '<label>附件</label><div>' +
+    '<div class="row"><label class="btn sm ghost" style="cursor:pointer">📎 选择图片 / 文档' +
+      '<input type="file" id="' + prefix + 'File" multiple style="display:none"></label>' +
+    '<span class="hint">支持 Word/PDF/图片等各类文件；也可在内容框里直接 Ctrl+V 粘贴截图（图片自动压缩，单个 ≤1.6MB）</span></div>' +
+    '<div class="chips" id="' + prefix + 'Chips"></div></div>';
+}
+function renderChips(prefix, list){
+  var box = $(prefix + "Chips");
+  if(!box) return;
+  box.innerHTML = list.map(function(a, i){
+    return '<span class="chip">' + (a.img ? '<img src="' + a.data + '" alt="">' : "📄") + esc(a.name) +
+           ' <small style="color:#9aa6bd">' + fmtSize(a.size) + '</small>' +
+           '<span class="x" data-rm="' + i + '">✕</span></span>';
+  }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll("[data-rm]"), function(el){
+    el.addEventListener("click", function(){ list.splice(+el.getAttribute("data-rm"), 1); renderChips(prefix, list); });
+  });
+}
+function addFiles(files, prefix, list){
+  Array.prototype.forEach.call(files || [], function(f){
+    readAttachment(f, function(att){
+      if(attSumSize(list) + (att.size || 0) > MSG_ATT_TOTAL){ toast("本条消息附件总大小超过 3MB，请精简后再试"); return; }
+      list.push(att); renderChips(prefix, list);
+    });
+  });
+}
+function bindAttach(prefix, list){
+  var inp = $(prefix + "File");
+  if(inp) inp.addEventListener("change", function(ev){ addFiles(ev.target.files, prefix, list); ev.target.value = ""; });
+  var ta = $(prefix + "Text");
+  if(ta) ta.addEventListener("paste", function(ev){
+    var items = (ev.clipboardData && ev.clipboardData.items) || [], files = [];
+    for(var i=0;i<items.length;i++){
+      if(items[i].kind === "file"){ var f = items[i].getAsFile(); if(f) files.push(f); }
+    }
+    if(files.length){ ev.preventDefault(); addFiles(files, prefix, list); toast("已添加粘贴的截图"); }
+  });
+}
 function msgItemHtml(m, editable){
   var h = '<div class="msgitem' + (m.pinned ? " pinned" : "") + '">';
   h += '<div class="h"><span>' + esc(m.date) + '</span><span>· ' + esc(m.author || "") + '</span>';
   if(m.pinned) h += '<span class="tag pin">置顶</span>';
   h += '</div><div class="c">' + esc(m.content) + '</div>';
+  h += renderAtts(m.attachments);
   if(editable){
     h += '<div class="ops">' +
       '<button class="btn sm ghost" data-op="pin" data-id="' + m.id + '">' + (m.pinned ? "取消置顶" : "置顶") + '</button>' +
@@ -843,10 +995,12 @@ function renderMessages(){
   /* 今日消息区块不再重复显示已在“置顶消息”里出现过的条目 */
   var today = todaysMsgs(cid).filter(function(m){ return !m.pinned; }).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
   var h = "";
+  var atts = [];
   if(editable){
     h += '<div class="sect">发布消息</div><div class="frm">' +
       '<label>日期</label><input class="in" type="date" id="msDate" value="' + todayStr() + '">' +
-      '<label>内容</label><textarea class="in" id="msText" placeholder="例如：今天数学作业 P34 1-6 题；明天带实验报告"></textarea>' +
+      '<label>内容</label><textarea class="in" id="msText" placeholder="例如：今天数学作业 P34 1-6 题；也可以在这里 Ctrl+V 粘贴截图"></textarea>' +
+      attachBoxHtml("ms") +
       '<label>置顶</label><div class="row"><input type="checkbox" id="msPin"><span class="hint">勾选后长期显示在列表最上方</span></div>' +
       '</div><div class="row" style="margin-top:10px"><button class="btn" id="msAdd">发布</button></div>';
   }
@@ -854,12 +1008,14 @@ function renderMessages(){
   h += '<div class="sect">今日消息（' + todayStr() + '）</div>' + (today.length ? today.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">今天暂无消息</div>');
   $("msgBody").innerHTML = h;
   if(editable){
+    bindAttach("ms", atts);
     $("msAdd").addEventListener("click", function(){
       var txt = $("msText").value.trim();
-      if(!txt){ toast("请输入消息内容"); return; }
+      if(!txt && !atts.length){ toast("请输入消息内容或添加附件"); return; }
       data.messages.push({
         id: uid("m"), classId: cid, date: $("msDate").value || todayStr(), content: txt,
-        pinned: $("msPin").checked, author: currentUser().username, createdAt: Date.now()
+        pinned: $("msPin").checked, author: currentUser().username, createdAt: Date.now(),
+        attachments: atts.slice()
       });
       saveData(); renderMessages(); updateMsgButton(); toast("消息已发布");
     });
@@ -924,11 +1080,17 @@ function renderAdmin(){
 }
 
 /* a) 校园设置（仅管理员） */
+var scEditId = null;
 function renderSchoolPane(){
-  var s = data.school;
+  /* 当前正在编辑的学校（默认取当前查看的学校） */
+  if(!scEditId || !schoolById(scEditId)) scEditId = viewSchoolId();
+  var s = schoolById(scEditId) || data.schools[0];
   $("paneSchool").innerHTML =
-    '<div class="sect">学校信息</div>' +
+    '<div class="sect">学校信息（新增 / 编辑）</div>' +
     '<div class="frm">' +
+      '<label>选择学校</label><select class="in" id="scPick">' +
+        data.schools.map(function(x){ return '<option value="' + x.id + '"' + (x.id === s.id ? " selected" : "") + '>' + esc(x.name) + '</option>'; }).join("") +
+      '</select>' +
       '<label>学校名称</label><input class="in" id="scName" value="' + esc(s.name) + '">' +
       '<label>定位显示</label><input class="in" id="scLoc" value="' + esc(s.location) + '" placeholder="例如：成都温江">' +
       '<label>纬度</label><input class="in" id="scLat" value="' + esc(s.lat) + '">' +
@@ -937,19 +1099,67 @@ function renderSchoolPane(){
       '<label>校徽图片</label><div class="row"><input type="file" id="scEmblem" accept="image/*"><button class="btn sm ghost" id="scEmblemReset">恢复默认校徽</button></div>' +
     '</div>' +
     '<div class="row" style="margin-top:12px"><img id="scPrev" src="' + esc(s.emblem) + '" style="width:64px;height:64px;border-radius:50%;background:#fff;object-fit:contain;box-shadow:0 4px 12px rgba(90,110,180,.18)"><span class="hint">当前校徽预览（建议 500KB 内的图片）</span></div>' +
-    '<div class="row" style="margin-top:14px"><button class="btn" id="scSave">保存学校信息</button></div>' +
-    '<div class="sect">班级管理</div>' +
-    '<div class="row"><input class="in" id="clName" placeholder="新增班级名称，例如：七年级九班" style="max-width:260px"><button class="btn sm" id="clAdd">添加班级</button></div>' +
-    '<table class="list"><thead><tr><th style="width:60%">班级</th><th>操作</th></tr></thead><tbody id="clList"></tbody></table>';
+    '<div class="row" style="margin-top:14px">' +
+      '<button class="btn" id="scSave">保存学校信息</button>' +
+      '<button class="btn ghost" id="scNew">＋ 新增学校</button>' +
+      '<button class="btn danger" id="scDel">删除该学校</button>' +
+    '</div>' +
+    '<div class="sect">班级管理（在学校下添加班级）</div>' +
+    '<div class="row"><input class="in" id="clName" placeholder="新增班级名称，例如：七年级九班" style="max-width:260px"><button class="btn sm" id="clAdd">添加班级</button>' +
+      '<span class="hint">新增的班级会挂在当前选中的「' + esc(s.name) + '」下</span></div>' +
+    '<div class="sect">学校 / 班级 列表</div>' +
+    '<div class="tree" id="scTree"></div>';
 
+  /* 学校 / 班级 层级列表 */
+  $("scTree").innerHTML = data.schools.map(function(x){
+    var cls = classesOfSchool(x.id);
+    var head = '<div class="srow"><img class="em" src="' + esc(x.emblem || DEFAULT_EMBLEM) + '" alt="">' +
+      esc(x.name) + '<span class="meta">' + esc(x.location || "未设置定位") + ' · ' + cls.length + ' 个班级</span></div>';
+    var rows = cls.length
+      ? cls.map(function(c){ return '<div class="crow">' + esc(c.name) + '<span class="meta">' + (tt(c.id).grid.flat().filter(Boolean).length) + ' 节课/周</span></div>'; }).join("")
+      : '<div class="crow" style="color:#b7b0c4">（该学校下暂无班级）</div>';
+    return head + rows;
+  }).join("");
+
+  $("scPick").addEventListener("change", function(){ scEditId = $("scPick").value; renderSchoolPane(); });
   $("scSave").addEventListener("click", function(){
-    s.name = $("scName").value.trim() || s.name;
-    s.location = $("scLoc").value.trim();
+    var t = schoolById(scEditId) || s;
+    t.name = $("scName").value.trim() || t.name;
+    t.location = $("scLoc").value.trim();
     var la = parseFloat($("scLat").value), lo = parseFloat($("scLon").value);
-    if(!isNaN(la)) s.lat = la;
-    if(!isNaN(lo)) s.lon = lo;
-    saveData(); renderBrand(); renderDateTime(); renderTable(); loadWeather();
+    if(!isNaN(la)) t.lat = la;
+    if(!isNaN(lo)) t.lon = lo;
+    saveData(); renderSchoolPane(); renderBrand(); renderDateTime(); renderTable(); loadWeather();
     toast("学校信息已保存");
+  });
+  $("scNew").addEventListener("click", function(){
+    var nm = prompt("请输入新学校名称：", "");
+    if(!nm || !nm.trim()) return;
+    var t = { id:uid("s"), name:nm.trim(), emblem:DEFAULT_EMBLEM, location:"", lat:30.68, lon:103.85 };
+    data.schools.push(t);
+    scEditId = t.id;
+    saveData(); renderSchoolPane(); toast("学校已新增，可在其下添加班级");
+  });
+  $("scDel").addEventListener("click", function(){
+    if(data.schools.length <= 1){ toast("至少保留一所学校"); return; }
+    var t = schoolById(scEditId);
+    var cls = classesOfSchool(t.id);
+    if(!confirm("删除学校「" + t.name + "」？其下 " + cls.length + " 个班级及相关课表、消息都会被删除。")) return;
+    var ids = cls.map(function(c){ return c.id; });
+    data.schools = data.schools.filter(function(x){ return x.id !== t.id; });
+    data.classes = data.classes.filter(function(c){ return c.schoolId !== t.id; });
+    data.users.forEach(function(u){
+      if(u.schoolId === t.id){
+        u.schoolId = data.schools[0].id;
+        var first = classesOfSchool(data.schools[0].id)[0];
+        u.classId = first ? first.id : null;
+      }
+    });
+    ids.forEach(function(id){ delete data.timetables[id]; });
+    data.messages = data.messages.filter(function(m){ return ids.indexOf(m.classId) < 0; });
+    if(data.defaultSchoolId === t.id){ data.defaultSchoolId = data.schools[0].id; data.defaultClassId = (classesOfSchool(data.schools[0].id)[0]||{}).id || null; }
+    scEditId = data.schools[0].id;
+    saveData(); renderSchoolPane(); renderBrand(); renderTable(); toast("学校已删除");
   });
   $("scGeoBtn").addEventListener("click", async function(){
     var n = $("scGeo").value.trim() || $("scLoc").value.trim();
@@ -964,41 +1174,35 @@ function renderSchoolPane(){
     if(!f) return;
     if(f.size > 500 * 1024){ toast("图片太大，请选 500KB 以内的图片"); return; }
     var fr = new FileReader();
-    fr.onload = function(){ s.emblem = fr.result; $("scPrev").src = fr.result; saveData(); renderBrand(); toast("校徽已更新"); };
+    fr.onload = function(){
+      (schoolById(scEditId) || s).emblem = fr.result;
+      $("scPrev").src = fr.result; saveData(); renderSchoolPane(); renderBrand(); toast("校徽已更新");
+    };
     fr.readAsDataURL(f);
   });
   $("scEmblemReset").addEventListener("click", function(){
-    s.emblem = DEFAULT_EMBLEM; saveData(); renderBrand(); $("scPrev").src = DEFAULT_EMBLEM; toast("已恢复默认校徽");
-  });
-  var clList = $("clList");
-  clList.innerHTML = data.classes.map(function(c){
-    return '<tr><td>' + esc(c.name) + '</td><td><button class="btn sm danger" data-op="delcls" data-id="' + c.id + '">删除</button></td></tr>';
-  }).join("");
-  Array.prototype.forEach.call(clList.querySelectorAll("[data-op]"), function(el){
-    el.addEventListener("click", function(){
-      var id = el.getAttribute("data-id");
-      if(data.classes.length <= 1){ toast("至少保留一个班级"); return; }
-      var used = data.users.filter(function(u){ return u.classId === id; }).length;
-      if(!confirm("确定删除该班级？" + (used ? "（该班下有 " + used + " 个用户，将自动转入第一个班级）" : ""))) return;
-      data.classes = data.classes.filter(function(c){ return c.id !== id; });
-      delete data.timetables[id];
-      data.users.forEach(function(u){ if(u.classId === id) u.classId = data.classes[0].id; });
-      data.messages = data.messages.filter(function(m){ return m.classId !== id; });
-      if(data.defaultClassId === id) data.defaultClassId = data.classes[0].id;
-      saveData(); renderAdmin(); renderBrand(); renderTable(); toast("班级已删除");
-    });
+    (schoolById(scEditId) || s).emblem = DEFAULT_EMBLEM;
+    saveData(); renderSchoolPane(); renderBrand(); toast("已恢复默认校徽");
   });
   $("clAdd").addEventListener("click", function(){
     var n = $("clName").value.trim();
     if(!n){ toast("请输入班级名称"); return; }
-    var c = { id: uid("c"), name:n };
+    var c = { id: uid("c"), schoolId: scEditId, name:n };
     data.classes.push(c);
     data.timetables[c.id] = { periods:defaultPeriods(), grid:defaultGrid(), lunch:{s:"12:40", e:"14:00"} };
-    saveData(); renderAdmin(); toast("班级已添加");
+    saveData(); renderSchoolPane(); toast("班级已添加到「" + (schoolById(scEditId)||{}).name + "」");
   });
 }
 
 /* b) 用户管理 */
+/* 学校 → 班级 下拉联动 */
+function fillClassSelect(schoolId, selectedClassId){
+  var sel = $("usClass");
+  if(!sel) return;
+  var cls = classesOfSchool(schoolId);
+  sel.innerHTML = cls.map(function(c){ return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join("");
+  if(selectedClassId && cls.filter(function(c){ return c.id === selectedClassId; }).length) sel.value = selectedClassId;
+}
 function renderUsersPane(){
   var me = currentUser(), admin = isAdmin();
   var list = admin ? data.users : data.users.filter(function(u){ return u.id === me.id; });
@@ -1007,9 +1211,12 @@ function renderUsersPane(){
     '<label>用户名</label><input class="in" id="usName" placeholder="登录用户名">' +
     '<label>登录密码</label><input class="in" id="usPass" type="text" placeholder="新建必填；修改时留空表示不改">' +
     '<label>姓名</label><input class="in" id="usReal" placeholder="真实姓名（可选）">' +
-    '<label>学校</label><select class="in" id="usSchool"><option>' + esc(data.school.name) + '</option></select>' +
-    '<label>班级</label><select class="in" id="usClass">' +
-      data.classes.map(function(c){ return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join("") + '</select>' +
+    '<label>学校</label><select class="in" id="usSchool"' + (admin ? "" : " disabled") + '>' +
+      data.schools.map(function(x){ return '<option value="' + x.id + '">' + esc(x.name) + '</option>'; }).join("") +
+    '</select>' +
+    '<label>班级</label><select class="in" id="usClass"' + (admin ? "" : " disabled") + '>' +
+      classesOfSchool(viewSchoolId()).map(function(c){ return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join("") +
+    '</select>' +
     '<label>职务</label><input class="in" id="usDuty" placeholder="例如：班主任 / 家长 / 学生">' +
     '<label>性别</label><select class="in" id="usGender"><option>男</option><option>女</option><option>保密</option></select>' +
     '<label>电话</label><input class="in" id="usPhone" placeholder="联系电话（可选）">' +
@@ -1018,13 +1225,23 @@ function renderUsersPane(){
     '<div class="row" style="margin-top:12px"><button class="btn" id="usSave">' + (admin ? "新增用户" : "保存我的资料") + '</button>' +
     '<span class="hint">' + (admin ? "管理员可维护全部用户" : "一般用户只能修改自己的资料（密码留空则不改）") + '</span></div>' +
     '<div class="sect">用户列表</div><table class="list"><thead><tr>' +
-    '<th>用户名</th><th>姓名</th><th>班级</th><th>职务</th><th>性别</th><th>电话</th><th>角色</th><th>操作</th>' +
+    '<th>用户名</th><th>姓名</th><th>学校</th><th>班级</th><th>职务</th><th>性别</th><th>电话</th><th>角色</th><th>操作</th>' +
     '</tr></thead><tbody id="usList"></tbody></table>';
   $("paneUsers").innerHTML = h;
+  /* 学校选择变化 → 班级下拉联动 */
+  if(admin && $("usSchool")){
+    $("usSchool").addEventListener("change", function(){ fillClassSelect($("usSchool").value, null); });
+    var meU0 = currentUser();
+    if(meU0 && meU0.schoolId && schoolById(meU0.schoolId)) fillClassSelect(meU0.schoolId, null);
+  }else{
+    fillClassSelect(viewSchoolId(), viewClassId());
+  }
   var tb = $("usList");
   tb.innerHTML = list.map(function(u){
     return '<tr>' +
-      '<td>' + esc(u.username) + '</td><td>' + esc(u.name || "-") + '</td><td>' + esc(className(u.classId)) + '</td>' +
+      '<td>' + esc(u.username) + '</td><td>' + esc(u.name || "-") + '</td>' +
+      '<td>' + esc((schoolById(u.schoolId || classSchoolId(u.classId)) || {}).name || "-") + '</td>' +
+      '<td>' + esc(className(u.classId)) + '</td>' +
       '<td>' + esc(u.duty || "-") + '</td><td>' + esc(u.gender || "-") + '</td><td>' + esc(u.phone || "-") + '</td>' +
       '<td>' + (u.role === "admin" ? '<span class="tag admin">管理员</span>' : '<span class="tag">一般用户</span>') + '</td>' +
       '<td><button class="btn sm ghost" data-op="edit" data-id="' + u.id + '">编辑</button>' +
@@ -1038,10 +1255,12 @@ function renderUsersPane(){
       if(!u) return;
       if(op === "edit"){
         $("usName").value = u.username; $("usPass").value = ""; $("usReal").value = u.name || "";
-        $("usClass").value = u.classId; $("usDuty").value = u.duty || "";
+        if($("usSchool")) $("usSchool").value = u.schoolId || viewSchoolId();
+        fillClassSelect(u.schoolId || viewSchoolId(), u.classId);
+        $("usDuty").value = u.duty || "";
         $("usGender").value = u.gender || "保密"; $("usPhone").value = u.phone || "";
         if(admin && $("usRole")) $("usRole").value = u.role;
-        toast("已载入表单，请修改后点「新增用户」保存（同名将提示已存在）");
+        toast("已载入表单，修改后点下方按钮保存");
         return;
       }
       if(op === "del"){
@@ -1069,6 +1288,7 @@ function renderUsersPane(){
     if(exist){
       /* 管理员点保存且用户名已存在 → 视为更新该用户 */
       exist.name = $("usReal").value.trim();
+      exist.schoolId = $("usSchool") ? $("usSchool").value : viewSchoolId();
       exist.classId = $("usClass").value;
       exist.duty = $("usDuty").value.trim();
       exist.gender = $("usGender").value;
@@ -1082,7 +1302,8 @@ function renderUsersPane(){
     if(!pw){ toast("新增用户必须填写密码"); return; }
     data.users.push({
       id: uid("u"), username: un, pass: await hashPass(un, pw), name: $("usReal").value.trim(),
-      classId: $("usClass").value, duty: $("usDuty").value.trim(), gender: $("usGender").value,
+      schoolId: $("usSchool") ? $("usSchool").value : viewSchoolId(), classId: $("usClass").value,
+      duty: $("usDuty").value.trim(), gender: $("usGender").value,
       phone: $("usPhone").value.trim(), role: $("usRole") ? $("usRole").value : "user"
     });
     saveData(); renderUsersPane(); toast("用户已新增");
@@ -1100,8 +1321,11 @@ function renderTtPane(){
   var t = tt(ttClassId);
   $("paneTt").innerHTML =
     '<div class="row" style="margin-bottom:10px">' +
-    '<span class="hint">班级：</span><select class="in" id="ttClass" style="max-width:200px">' +
-    allowed.map(function(c){ return '<option value="' + c.id + '"' + (c.id === ttClassId ? " selected" : "") + '>' + esc(c.name) + '</option>'; }).join("") + '</select>' +
+    '<span class="hint">' + (admin ? "学校 / 班级：" : "班级：") + '</span><select class="in" id="ttClass" style="max-width:260px">' +
+    allowed.map(function(c){
+      var label = admin ? ((schoolById(c.schoolId) || {}).name || "") + " · " + c.name : c.name;
+      return '<option value="' + c.id + '"' + (c.id === ttClassId ? " selected" : "") + '>' + esc(label) + '</option>';
+    }).join("") + '</select>' +
     '<button class="btn sm ghost" id="ttExport">下载 CSV 模板</button>' +
     '<label class="btn sm ghost" style="cursor:pointer">导入 CSV<input type="file" id="ttImport" accept=".csv,text/csv" style="display:none"></label>' +
     '<button class="btn sm ghost" id="ttReset">恢复默认课表</button>' +
@@ -1172,7 +1396,7 @@ function exportCsv(cid){
   var blob = new Blob([buildCsv(cid)], { type:"text/csv;charset=utf-8" });
   var a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = data.school.name + className(cid) + "课程表模板.csv";
+  a.download = currentSchool().name + className(cid) + "课程表模板.csv";
   document.body.appendChild(a); a.click();
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
   toast("模板已下载");
@@ -1240,8 +1464,11 @@ function renderMsgPane(){
     : me.classId;
   $("paneMsg").innerHTML =
     '<div class="row" style="margin-bottom:10px">' +
-    (admin ? '<span class="hint">班级：</span><select class="in" id="mpClass" style="max-width:200px">' +
-      allowed.map(function(c){ return '<option value="' + c.id + '"' + (c.id === cid ? " selected" : "") + '>' + esc(c.name) + '</option>'; }).join("") + '</select>'
+    (admin ? '<span class="hint">学校 / 班级：</span><select class="in" id="mpClass" style="max-width:260px">' +
+      allowed.map(function(c){
+        var label = ((schoolById(c.schoolId) || {}).name || "") + " · " + c.name;
+        return '<option value="' + c.id + '"' + (c.id === cid ? " selected" : "") + '>' + esc(label) + '</option>';
+      }).join("") + '</select>'
       : '<span class="hint">当前班级：<b>' + esc(className(cid)) + '</b>（仅本班）</span>') +
     '</div><div id="mpList"></div>';
   if(admin){ $("mpClass").addEventListener("change", function(){ ttClassId = $("mpClass").value; renderMsgPane(); }); }
@@ -1249,21 +1476,25 @@ function renderMsgPane(){
 }
 function renderMsgPaneList(cid){
   var editable = canEditClass(cid);
+  var atts = [];
   var all = msgsOf(cid).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
   var h = '<div class="sect">发布消息</div><div class="frm">' +
     '<label>日期</label><input class="in" type="date" id="mpDate" value="' + todayStr() + '">' +
-    '<label>内容</label><textarea class="in" id="mpText" placeholder="例如：今天数学作业 P34 1-6 题"></textarea>' +
+    '<label>内容</label><textarea class="in" id="mpText" placeholder="例如：今天数学作业 P34 1-6 题；也可直接 Ctrl+V 粘贴截图"></textarea>' +
+    attachBoxHtml("mp") +
     '<label>置顶</label><div class="row"><input type="checkbox" id="mpPin"><span class="hint">置顶后长期显示</span></div>' +
     '</div><div class="row" style="margin-top:10px"><button class="btn" id="mpAdd">发布消息</button></div>';
   h += '<div class="sect">消息列表（' + esc(className(cid)) + '，共 ' + all.length + ' 条）</div>';
   h += all.length ? all.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">暂无消息</div>';
   $("mpList").innerHTML = h;
+  bindAttach("mp", atts);
   $("mpAdd").addEventListener("click", function(){
     var txt = $("mpText").value.trim();
-    if(!txt){ toast("请输入内容"); return; }
+    if(!txt && !atts.length){ toast("请输入内容或添加附件"); return; }
     data.messages.push({
       id: uid("m"), classId: cid, date: $("mpDate").value || todayStr(), content: txt,
-      pinned: $("mpPin").checked, author: currentUser().username, createdAt: Date.now()
+      pinned: $("mpPin").checked, author: currentUser().username, createdAt: Date.now(),
+      attachments: atts.slice()
     });
     saveData(); renderMsgPaneList(cid); updateMsgButton(); toast("已发布");
   });
