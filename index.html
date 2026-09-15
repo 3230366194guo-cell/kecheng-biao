@@ -264,6 +264,29 @@
   }
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* 手机端紧凑文案（宽屏显示长文案，窄屏显示短文案） */
+  .ht-short,.hh-short,.noon-short{display:none}
+
+  /* 手机端视图切换条 + 单日视图 */
+  .mobilebar{display:none}
+  .dayview{display:none}
+  .daytab{padding:6px 10px;border-radius:10px;background:#f7f6fa;color:#6b6480;font-size:12.5px;cursor:pointer;border:1px solid transparent;white-space:nowrap}
+  .daytab.on{background:linear-gradient(135deg,#eef3ff,#e9f9f2);color:#4a5f8f;border-color:#dbe6fb;font-weight:700}
+  .daytab.today::after{content:"今";font-size:9px;color:#ff5f6d;margin-left:3px;vertical-align:2px}
+  .drow{display:flex;gap:9px;align-items:stretch;padding:7px 10px;border-bottom:1px solid var(--line)}
+  .drow:last-child{border-bottom:none}
+  .dtime{width:88px;flex:none;text-align:center;font-size:11.5px;font-weight:700;color:#57525f;padding-top:7px;white-space:nowrap}
+  .dtime small{display:block;font-size:10px;color:#a99fb3;font-weight:400;margin-top:3px;letter-spacing:1px}
+  .dtime.live{color:#15803d}
+  .dcard{flex:1;min-width:0;border-radius:13px;padding:9px 12px;display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;color:#3f3a45}
+  .dcard .ico{font-size:17px;flex:none}
+  .dcard .nm{word-break:keep-all;overflow-wrap:break-word}
+  .dempty{flex:1;border-radius:13px;background:repeating-linear-gradient(135deg,#faf8f2 0 6px,#f6f3ea 6px 12px);color:#d6cfc0;text-align:center;padding:12px;font-size:14px}
+  .drow.live .dcard{animation:glowPulse 1.8s ease-in-out infinite;outline:2px solid rgba(34,197,94,.85);outline-offset:-2px}
+  .dbadge{font-size:10.5px;color:#fff;background:linear-gradient(120deg,#34d399,#22c55e);padding:2.5px 8px;border-radius:99px;margin-left:auto;white-space:nowrap}
+  .dnoon{display:flex;gap:9px;align-items:center;padding:8px 10px;background:linear-gradient(90deg,transparent,rgba(233,185,73,.06) 30%,rgba(233,185,73,.06) 70%,transparent);color:#a08a5a;font-size:12.5px;border-top:2px dashed #e8d9b0;border-bottom:2px dashed #e8d9b0}
+  .dnoon .dtime{padding-top:0;font-size:12px;color:#b3a887}
+
   @media (max-width:900px){
     .hbrow h1{font-size:18px}
     .dateline{font-size:16px;gap:9px}
@@ -271,24 +294,47 @@
     .wxcur,.hourly .h,.wxmsg{width:70px;min-height:96px}
     .wxcur .hi,.hourly .h .hi,.wxmsg .ic{font-size:19px}
   }
+  /* ===== 手机端（≤700px）：天气一行等分 + 单日视图 + 不折行 ===== */
   @media (max-width:700px){
-    body{padding:14px 10px 30px}
-    td{height:60px;padding:4px}
-    .card .nm{font-size:13.5px}
-    .card .ico{font-size:15px}
-    col.time{width:100px}
-    th{font-size:14px;letter-spacing:1px}
-    .tlab{font-size:13px}
-    .tlab small{font-size:10px;letter-spacing:1px}
+    body{padding:12px 8px 26px}
+    .topbar{padding:12px 10px;gap:9px}
     .hbrow h1{font-size:16px}
     .logo{width:44px;height:44px}
-    .wxcur,.hourly .h,.wxmsg{width:62px;min-height:88px}
-    .wxcur .ht,.hourly .h .ht{font-size:10px}
-    .wxcur .hh,.hourly .h .hh{font-size:9.5px}
-    .wxmsg .t{font-size:10px}
+
+    /* 天气 + 查看消息：六张卡片等分一行，永不换行 */
+    .wxrow{flex-wrap:nowrap;gap:5px;width:100%;align-items:stretch}
+    .wxcur,.hourly .h,.wxmsg{
+      flex:1 1 0;min-width:0;width:auto;min-height:86px;padding:6px 2px 7px;gap:1px;border-radius:12px;
+    }
+    .hourly{flex:4 1 0;min-width:0;gap:5px}
+    .wxcur .ht,.hourly .h .ht{font-size:9px;letter-spacing:0}
+    .wxcur .hi,.hourly .h .hi,.wxmsg .ic{font-size:18px}
+    .wxcur .hh,.hourly .h .hh{font-size:8.5px;letter-spacing:-.2px}
+    .wxcur .hv,.hourly .h .hv{font-size:12px}
+    .wxmsg .t{font-size:9.5px;letter-spacing:0}
+    .ht-long,.hh-long,.noon-long{display:none}
+    .ht-short,.hh-short,.noon-short{display:inline}
+
+    /* 表格（整周模式）：可横向滑动 + 不折行 */
+    .board.week{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table.sch{min-width:580px}
+    col.time{width:84px}
+    th{font-size:13px;letter-spacing:0;padding:10px 4px}
+    td{height:56px;padding:4px}
+    .card .nm{font-size:13px;letter-spacing:-.2px}
+    .card .ico{font-size:14px}
+    .tlab{font-size:11.5px;letter-spacing:0}
+    .tlab small{font-size:9.5px;letter-spacing:0}
+    tr.noon td{font-size:12px;letter-spacing:4px}
+    tr.noon .noon-short{font-size:12px;letter-spacing:0;color:#b3a887;font-weight:400}
+
+    /* 单日视图接管显示 */
+    .mobilebar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px}
+    .mobilebar .sp{flex:1}
     .frm{grid-template-columns:1fr}
     .frm label{text-align:left}
   }
+
 </style>
 </head>
 <body>
@@ -339,7 +385,15 @@
     </span>
   </div>
 
-  <section class="board">
+  <!-- 手机端：星期切换 + 单日/整周 切换 -->
+  <div class="mobilebar" id="mobileBar">
+    <div class="daytabs" id="dayTabs" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+    <span class="sp"></span>
+    <button class="btn sm ghost" id="viewToggle">整周视图</button>
+  </div>
+
+  <!-- 整周视图（桌面 + 手机“整周”模式） -->
+  <section class="board week" id="boardWeek">
     <table class="sch">
       <colgroup><col class="time"></colgroup>
       <thead><tr id="headRow"></tr></thead>
@@ -347,11 +401,17 @@
     </table>
   </section>
 
+  <!-- 手机端单日视图 -->
+  <section class="board dayview" id="boardDay">
+    <div id="dayList"></div>
+  </section>
+
   <footer class="foot">
     <div class="stat">📆 本周课程 <b id="statCnt">0</b> 节</div>
     <span id="syncState" class="hint">云端 · 未登录</span>
     <button class="btn ghost" id="setBtn">⚙️ 设置</button>
     <a class="link" id="logoutLink" style="display:none">退出登录</a>
+    <span id="verTag" class="hint" style="color:#c0b9cc"></span>
   </footer>
 </div>
 
@@ -415,6 +475,10 @@
 
 /* ---------------- 常量与默认数据 ---------------- */
 var STORE_KEY = "kcb_v3";
+/* 版本号：每次修改都会输出新版本，便于回溯与回滚 */
+var APP_VERSION = "v2.0";
+var APP_BUILD = "2026-09-15";
+var APP_CHANGE = "手机端单日视图 + 天气一行等分 + 时间/课程名不折行";
 var DAYS = ["星期一","星期二","星期三","星期四","星期五"];
 var WEEK_CN = ["日","一","二","三","四","五","六"];
 var DEFAULT_EMBLEM = "data:image/webp;base64,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";
@@ -846,7 +910,7 @@ function renderTable(){
     html += '<tr id="row-' + r + '">';
     html += '<td class="time-cell' + (isLiveRow ? " live" : "") + '"><div class="tlab">' +
             (isLiveRow ? '<span class="now-dot"></span>' : '') +
-            t.periods[r].s + " – " + t.periods[r].e + '<small>第' + (r+1) + '节</small></div></td>';
+            t.periods[r].s + "–" + t.periods[r].e + '<small>第' + (r+1) + '节</small></div></td>';
     for(var d=0;d<DAYS.length;d++){
       var isLiveCell = (r === li.row && d === li.col);
       var bg = (d === todayCol && !isLiveCell) ? ' style="background:rgba(255,244,214,.5)"' : "";
@@ -854,8 +918,12 @@ function renderTable(){
     }
     html += '</tr>';
     if(r === 4){
-      html += '<tr class="noon"><td class="time-cell noon-t">' + t.lunch.s + " – " + t.lunch.e + '</td>' +
-              '<td colspan="5"><span class="ico">🍱</span>午　间　休　息</td></tr>';
+      /* 午休：手机上时间格显示「午休」，完整时段并入跨列文字（保证单行不折行） */
+      html += '<tr class="noon"><td class="time-cell noon-t">' +
+              '<span class="noon-long">' + t.lunch.s + " – " + t.lunch.e + '</span>' +
+              '<span class="noon-short">午休</span></td>' +
+              '<td colspan="5"><span class="ico">🍱</span>午　间　休　息' +
+              '<span class="noon-short ns"> ' + t.lunch.s + "–" + t.lunch.e + '</span></td></tr>';
     }
   }
   $("bodyRows").innerHTML = html;
@@ -872,6 +940,85 @@ function renderTable(){
   }
   $("statCnt").textContent = cnt;
   $("weekendBanner").classList[(gd === 0 || gd === 6) ? "add" : "remove"]("show");
+  renderDayTabs();
+  renderDayList();
+  applyMobileView();
+}
+
+/* ================================================================
+   手机端单日视图（要求：课程名与时间都不折行）
+================================================================ */
+var MV = { mode:"day", day:null };
+function isMobileView(){
+  try{ return window.matchMedia("(max-width:700px)").matches; }catch(e){ return window.innerWidth <= 700; }
+}
+function todayColIdx(){
+  var gd = new Date().getDay();
+  return (gd >= 1 && gd <= 5) ? gd - 1 : 0;
+}
+function renderDayTabs(){
+  var box = $("dayTabs");
+  if(!box) return;
+  if(MV.day === null || MV.day < 0 || MV.day > 4) MV.day = todayColIdx();
+  var tc = todayColIdx();
+  box.innerHTML = DAYS.map(function(d, i){
+    return '<span class="daytab' + (i === MV.day ? " on" : "") + (i === tc ? " today" : "") +
+           '" data-day="' + i + '">' + d.replace("星期", "周") + '</span>';
+  }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll("[data-day]"), function(el){
+    el.addEventListener("click", function(){
+      MV.day = +el.getAttribute("data-day");
+      MV.mode = "day";
+      renderDayTabs(); renderDayList(); applyMobileView();
+    });
+  });
+}
+function renderDayList(){
+  var cid = viewClassId(), box = $("dayList");
+  if(!box) return;
+  if(!cid){ box.innerHTML = '<div class="hint" style="padding:14px">暂无班级</div>'; return; }
+  var t = tt(cid), li = liveInfo(), day = MV.day === null ? todayColIdx() : MV.day;
+  var html = "";
+  for(var r=0;r<t.periods.length;r++){
+    var name = t.grid[r] ? t.grid[r][day] : null;
+    var isLive = (r === li.row && day === li.col && !!li.subject);
+    html += '<div class="drow' + (isLive ? " live" : "") + '">' +
+      '<div class="dtime' + (isLive ? " live" : "") + '">' +
+        (isLive ? '<span class="now-dot"></span>' : '') +
+        t.periods[r].s + "–" + t.periods[r].e + '<small>第' + (r+1) + '节</small></div>';
+    if(name){
+      var c = colorOf(name);
+      var hasEmo = (EMO[name] && name.indexOf("/") < 0);
+      html += '<div class="dcard" style="background:' + c.bg + ';color:' + c.fg + '" title="' + esc(name) + '">' +
+        (hasEmo ? '<span class="ico">' + EMO[name] + '</span>' : '') +
+        '<span class="nm">' + esc(name) + '</span>' +
+        (isLive ? '<span class="dbadge">上课中</span>' : '') + '</div>';
+    }else{
+      html += '<div class="dempty">—</div>';
+    }
+    html += '</div>';
+    if(r === 4){
+      html += '<div class="dnoon"><div class="dtime">午休</div>' +
+              '<div>🍱 午间休息 · ' + t.lunch.s + "–" + t.lunch.e + '</div></div>';
+    }
+  }
+  box.innerHTML = html;
+}
+function applyMobileView(){
+  var bar = $("mobileBar"), wk = $("boardWeek"), dy = $("boardDay");
+  if(!bar || !wk || !dy) return;
+  if(!isMobileView()){
+    bar.style.display = "none";
+    wk.style.display = "";
+    dy.style.display = "none";
+    return;
+  }
+  bar.style.display = "flex";
+  var dayMode = (MV.mode !== "week");
+  wk.style.display = dayMode ? "none" : "block";
+  dy.style.display = dayMode ? "block" : "none";
+  var vt = $("viewToggle");
+  if(vt) vt.textContent = dayMode ? "整周视图" : "单日视图";
 }
 function buildCell(row, col, name, li){
   if(!name){
@@ -970,9 +1117,14 @@ function renderHourly(list){
   var h = "";
   for(var i=0;i<list.length;i++){
     var it = list[i];
-    h += '<div class="h"><div class="ht">' + periodName(it.hour) + h12(it.hour) + ':00</div>' +
+    var longT = periodName(it.hour) + h12(it.hour) + ':00';
+    var shortT = pad(it.hour) + ':00';
+    var humTxt = (it.hum == null ? "--" : Math.round(it.hum));
+    h += '<div class="h"><div class="ht">' +
+         '<span class="ht-long">' + longT + '</span><span class="ht-short">' + shortT + '</span></div>' +
          '<div class="hi">' + it.icon + '</div>' +
-         '<div class="hh">湿度 ' + (it.hum == null ? "--" : Math.round(it.hum)) + '%</div>' +
+         '<div class="hh"><span class="hh-long">湿度 ' + humTxt + '%</span>' +
+         '<span class="hh-short">💧' + humTxt + '%</span></div>' +
          '<div class="hv">' + (it.temp == null ? "--" : Math.round(it.temp)) + '℃</div></div>';
   }
   $("hourly").innerHTML = h;
@@ -981,9 +1133,11 @@ function setCurrent(temp, code, desc, icon, hum){
   $("wxTemp").textContent = (temp == null ? "--" : Math.round(temp));
   $("wxIco").textContent = icon || (code != null ? wmoInfo(code)[2] : "🌡️");
   var s = desc || (code != null ? wmoInfo(code)[1] : "天气");
-  if(hum != null) s += " · 湿度" + Math.round(hum) + "%";
-  $("wxHum").textContent = s;
-  $("wxCard").title = "当前天气：" + s + "（点击可切换城市）";
+  var humTxt = (hum == null) ? "" : (Math.round(hum) + "%");
+  /* 宽屏：阴 · 湿度72%　窄屏：💧72%（描述由上方图标表达，避免折行） */
+  $("wxHum").innerHTML = '<span class="hh-long">' + esc(s) + (humTxt ? " · 湿度" + humTxt : "") + '</span>' +
+                         '<span class="hh-short">💧' + (humTxt || "--") + '</span>';
+  $("wxCard").title = "当前天气：" + s + (humTxt ? " · 湿度" + humTxt : "") + "（点击可切换城市）";
 }
 function wxFail(){
   $("wxIco").textContent = "😶";
@@ -2026,8 +2180,19 @@ function renderMsgPaneList(cid){
    六、启动
 ================================================================ */
 function renderAll(){
-  renderBrand(); renderDateTime(); renderTable(); renderLiveNow(); updateMsgButton();
+  renderBrand(); renderDateTime(); renderTable(); renderLiveNow(); updateMsgButton(); renderVer();
 }
+/* 页脚版本号 */
+function renderVer(){
+  var el = $("verTag");
+  if(el) el.textContent = APP_VERSION + " · " + APP_BUILD;
+}
+$("viewToggle").addEventListener("click", function(){
+  MV.mode = (MV.mode === "week") ? "day" : "week";
+  applyMobileView();
+});
+window.addEventListener("resize", function(){ applyMobileView(); });
+window.addEventListener("orientationchange", function(){ setTimeout(applyMobileView, 200); });
 $("setBtn").addEventListener("click", function(){
   if(!currentUser()){ openLogin(); return; }
   openAdmin();
