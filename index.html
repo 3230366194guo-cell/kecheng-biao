@@ -248,10 +248,15 @@
   .tree .srow{display:flex;align-items:center;gap:9px;background:#f7f9ff;padding:9px 12px;border-bottom:1px solid var(--line);font-weight:700;color:#4a5f8f}
   .tree .srow .em{width:26px;height:26px;border-radius:50%;background:#fff;object-fit:contain;border:1px solid #e3eaf9}
   .tree .srow .meta{margin-left:auto;font-weight:400;font-size:12px;color:#9aa6bd}
-  .tree .crow{display:flex;align-items:center;gap:9px;padding:8px 12px 8px 34px;border-bottom:1px solid #f1eee7;font-size:13.5px;color:#57526b}
+  .tree .crow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 12px 8px 30px;border-bottom:1px solid #f1eee7;font-size:13.5px;color:#57526b}
   .tree .crow::before{content:"└";color:#c9c3d6;margin-right:2px}
   .tree .crow:last-child{border-bottom:none}
   .tree .crow .meta{margin-left:auto;font-size:12px;color:#9aa6bd}
+  .tree .crow .cname{min-width:86px;font-weight:700;color:#4a5f8f}
+  .tree .crow .link-in{max-width:290px;font-size:11.5px;padding:4px 8px;color:#4a5f8f;background:#f7f9ff;border-color:#e3eaf9;cursor:text}
+  #qrBox{text-align:center}
+  #qrBox img{width:240px;height:240px;border-radius:12px;border:1px solid var(--line);background:#fff;padding:8px}
+  #qrBox .lnk{margin-top:10px;font-size:12.5px;color:#4a5f8f;word-break:break-all;background:#f7f9ff;border:1px solid #e3eaf9;border-radius:10px;padding:8px 10px}
   #toast{
     position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
     background:rgba(52,48,66,.94);color:#fff;padding:10px 18px;border-radius:99px;font-size:13.5px;
@@ -325,6 +330,15 @@
 
   <div class="weekend-banner" id="weekendBanner">🎉 今天是周末，没有课，好好休息放松一下吧！</div>
 
+  <!-- 未登录且没有班级链接时的提示（输入班级码即可查看） -->
+  <div class="weekend-banner" id="codeBanner" style="display:none">
+    🔗 请使用班主任分享的班级链接或二维码打开　
+    <span style="display:inline-flex;gap:8px;align-items:center;margin-left:8px">
+      <input class="in" id="codeInput" placeholder="或在此输入 6 位班级码" style="max-width:190px;padding:5px 9px">
+      <button class="btn sm" id="codeGo">查看</button>
+    </span>
+  </div>
+
   <section class="board">
     <table class="sch">
       <colgroup><col class="time"></colgroup>
@@ -374,6 +388,22 @@
   </div>
 </div>
 
+<!-- 分享二维码 -->
+<div class="mask" id="maskQR">
+  <div class="modal narrow">
+    <div class="mtitle"><h3>📱 班级分享二维码 · <span id="qrTitle"></span></h3><span class="x" data-close="maskQR">✕</span></div>
+    <div id="qrBox">
+      <img id="qrImg" src="" alt="二维码">
+      <div class="lnk" id="qrLink"></div>
+      <div class="hint" style="margin-top:8px">家长扫码或打开链接即可查看课表与近 7 天通知，无需登录</div>
+      <div class="row" style="justify-content:center;margin-top:12px">
+        <button class="btn sm" id="qrCopy">复制链接</button>
+        <button class="btn sm ghost" data-close="maskQR">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -407,7 +437,10 @@ function cloudErrText(payload){
     AUTH_FAILED:"用户名或密码不正确", NO_TOKEN:"请先登录", BAD_TOKEN:"登录已过期，请重新登录",
     NO_PERMISSION:"当前账号没有权限执行该操作", KEEP_ONE_SCHOOL:"至少要保留一所学校",
     CANNOT_DELETE_SELF:"不能删除当前登录的账号", OLD_PASSWORD_WRONG:"原密码不正确",
-    PASSWORD_TOO_SHORT:"新密码至少 4 位", NOT_FOUND:"数据不存在"
+    PASSWORD_TOO_SHORT:"新密码至少 4 位", NOT_FOUND:"数据不存在",
+    BAD_CODE:"班级码无效或已失效，请向班主任索取新链接",
+    NO_CODE:"请输入班级码",
+    NOT_PUBLIC:"该班级的公开访问已被关闭，请联系班主任"
   };
   for(var k in map){ if(m.indexOf(k) >= 0) return map[k]; }
   return m || "云端操作失败";
@@ -457,10 +490,13 @@ async function cloudUploadAtt(att, classId){
 function applyCloud(d){
   if(!d) return;
   if(d.me){ CLOUD.userId = d.me.id; }
+  PUBLIC.mode = false;                       /* 登录后进入完整模式 */
   data.schools = (d.schools || []).map(function(s){
     return { id:s.id, name:s.name, emblem:s.emblem || DEFAULT_EMBLEM, location:s.location || "", lat:s.lat, lon:s.lon };
   });
-  data.classes = (d.classes || []).map(function(c){ return { id:c.id, schoolId:c.school_id, name:c.name }; });
+  data.classes = (d.classes || []).map(function(c){
+    return { id:c.id, schoolId:c.school_id, name:c.name, public_code:c.public_code || "", isPublic:(c.is_public !== false) };
+  });
   data.users = (d.users || []).map(function(u){
     return { id:u.id, username:u.username, name:u.name || "", schoolId:u.school_id, classId:u.class_id,
              duty:u.duty || "", gender:u.gender || "保密", phone:u.phone || "", role:u.role || "user" };
@@ -471,10 +507,7 @@ function applyCloud(d){
     ttObj[k] = { periods:t.periods || [], grid:t.grid || [], lunch:t.lunch || {s:"12:40",e:"14:00"} };
   }
   data.timetables = ttObj;
-  data.messages = (d.messages || []).map(function(m){
-    return { id:m.id, classId:m.class_id, date:m.date, content:m.content || "", pinned:!!m.pinned,
-             author:m.author || "", attachments:m.attachments || [], createdAt:m.created_at_ms };
-  });
+  data.messages = (d.messages || []).map(normalizeMsg);
   data.defaultSchoolId = data.schools.length ? data.schools[0].id : null;
   data.defaultClassId = data.classes.length ? data.classes[0].id : null;
   data.session = CLOUD.userId;
@@ -495,10 +528,57 @@ async function cloudRefresh(){
   }
 }
 function storeToken(t){ try{ if(t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }catch(e){} }
+
+/* ================================================================
+   公开浏览（家长免登录）：?c=随机短码 → 只读「课表 + 近7天消息 + 置顶」
+================================================================ */
+var PUBLIC = { mode:false, code:null, classId:null };
+var PUB_KEY = "kcb_pub_code";
+function urlCode(){
+  try{ return new URLSearchParams(location.search).get("c"); }catch(e){ return null; }
+}
+function siteBase(){
+  if(!/^https?:/i.test(location.protocol)) return "";
+  return location.origin + location.pathname.replace(/[^/]*$/, "");
+}
+function publicLink(code){
+  var base = siteBase();
+  return base ? (base + "?c=" + encodeURIComponent(code || "")) : "";
+}
+function normalizeMsg(m){
+  return { id:m.id, classId:m.class_id, date:m.date, content:m.content || "", pinned:!!m.pinned,
+           author:m.author || "", attachments:m.attachments || [], createdAt:m.created_at_ms };
+}
+function applyPublic(d){
+  PUBLIC.mode = true;
+  PUBLIC.code = d.class.public_code;
+  PUBLIC.classId = d.class.id;
+  data.schools = [{ id:d.school.id, name:d.school.name, emblem:d.school.emblem || DEFAULT_EMBLEM,
+                    location:d.school.location || "", lat:d.school.lat, lon:d.school.lon }];
+  data.classes = [{ id:d.class.id, schoolId:d.school.id, name:d.class.name, public_code:d.class.public_code, isPublic:true }];
+  var ttObj = {};
+  ttObj[d.class.id] = { periods:d.timetable.periods || [], grid:d.timetable.grid || [],
+                        lunch:d.timetable.lunch || {s:"12:40", e:"14:00"} };
+  data.timetables = ttObj;
+  data.messages = (d.messages || []).map(normalizeMsg);
+  data.users = [];
+  data.session = null;
+  data.defaultSchoolId = d.school.id;
+  data.defaultClassId = d.class.id;
+  try{ localStorage.setItem(PUB_KEY, d.class.public_code); }catch(e){}
+  saveData();
+}
 function renderSyncState(){
   var el = $("syncState");
   if(!el) return;
   if(!cloudEnabled()){ el.textContent = "本机版"; el.style.color = "#a49cb2"; return; }
+  if(PUBLIC.mode && !currentUser()){
+    el.innerHTML = "公开浏览 · " + esc(className(viewClassId())) + "　<a class='link' id='pubLogin'>登录可维护</a>";
+    el.style.color = "#4a5f8f";
+    var lg = $("pubLogin");
+    if(lg) lg.addEventListener("click", function(){ openLogin(); });
+    return;
+  }
   if(!cloudOn()){ el.textContent = "云端 · 未登录"; el.style.color = "#a49cb2"; return; }
   if(CLOUD.online){
     var t = CLOUD.lastSync ? new Date(CLOUD.lastSync) : null;
@@ -1137,12 +1217,26 @@ function bindMsgOps(scope, after){
     });
   });
 }
+/* 消息分组：置顶 / 近 7 天 / 更早 */
+function recentCutoff(){
+  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - 6);
+  return todayStr(d);
+}
+function msgBuckets(cid){
+  var cut = recentCutoff();
+  var all = msgsOf(cid).slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+  return {
+    cut: cut,
+    pinned: all.filter(function(m){ return m.pinned; }),
+    recent: all.filter(function(m){ return !m.pinned && (m.date || "") >= cut; }),
+    older:  all.filter(function(m){ return !m.pinned && (m.date || "") < cut; })
+  };
+}
 function renderMessages(){
   var cid = viewClassId(), editable = canEditClass(cid);
-  $("msgClassLabel").textContent = className(cid) + (editable ? "" : "（只读，登录后可发布）");
-  var pinned = pinnedMsgs(cid).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
-  /* 今日消息区块不再重复显示已在“置顶消息”里出现过的条目 */
-  var today = todaysMsgs(cid).filter(function(m){ return !m.pinned; }).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+  var isPublic = (PUBLIC.mode && !currentUser());
+  $("msgClassLabel").textContent = className(cid) + (editable ? "" : (isPublic ? "（公开浏览 · 只读）" : "（只读，登录后可发布）"));
+  var b = msgBuckets(cid);
   var h = "";
   var atts = [];
   if(editable){
@@ -1153,8 +1247,11 @@ function renderMessages(){
       '<label>置顶</label><div class="row"><input type="checkbox" id="msPin"><span class="hint">勾选后长期显示在列表最上方</span></div>' +
       '</div><div class="row" style="margin-top:10px"><button class="btn" id="msAdd">发布</button></div>';
   }
-  h += '<div class="sect">置顶消息</div>' + (pinned.length ? pinned.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">暂无置顶消息</div>');
-  h += '<div class="sect">今日消息（' + todayStr() + '）</div>' + (today.length ? today.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">今天暂无消息</div>');
+  h += '<div class="sect">置顶消息</div>' + (b.pinned.length ? b.pinned.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">暂无置顶消息</div>');
+  h += '<div class="sect">近 7 天消息（' + b.cut + ' 起）</div>' + (b.recent.length ? b.recent.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">近 7 天暂无消息</div>');
+  if(!isPublic && b.older.length){
+    h += '<div class="sect">更早的消息</div>' + b.older.map(function(m){ return msgItemHtml(m, editable); }).join("");
+  }
   $("msgBody").innerHTML = h;
   if(editable){
     bindAttach("ms", atts);
@@ -1199,6 +1296,42 @@ async function publishMessageCloud(cid, txt, date, pinned, atts){
 ================================================================ */
 function openModal(id){ $(id).classList.add("show"); }
 function closeModal(id){ $(id).classList.remove("show"); }
+/* 复制文本到剪贴板（700ms 超时保护 + 兼容回退，避免个别浏览器卡住） */
+async function copyText(t){
+  var ok = false;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await Promise.race([
+        navigator.clipboard.writeText(t).then(function(){ ok = true; }),
+        new Promise(function(_, rej){ setTimeout(function(){ rej(new Error("clipboard-timeout")); }, 700); })
+      ]);
+    }
+  }catch(e){ ok = false; }
+  if(ok){
+    toast("已复制：" + (t.length > 42 ? t.slice(0, 42) + "…" : t));
+    return true;
+  }
+  var ta = document.createElement("textarea");
+  ta.value = t; ta.style.position = "fixed"; ta.style.left = "-9999px";
+  document.body.appendChild(ta); ta.select();
+  var ok2 = false;
+  try{ ok2 = document.execCommand("copy"); }catch(e2){}
+  ta.remove();
+  toast(ok2 ? "已复制到剪贴板" : ("请手动复制：" + t));
+  return ok2;
+}
+/* 班级分享二维码（国内源优先，失败自动切换备用源） */
+function showQR(cls, title){
+  var link = publicLink(cls.public_code);
+  if(!link){ toast("请先把网页部署到线上（当前的本地文件没有可分享网址）"); return; }
+  $("qrTitle").textContent = title || cls.name;
+  $("qrLink").textContent = link;
+  var enc = encodeURIComponent(link), img = $("qrImg");
+  img.onerror = function(){ img.onerror = null; img.src = "https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=" + enc; };
+  img.src = "https://api.pwmqr.com/qrcode/create/?url=" + enc;
+  $("qrCopy").onclick = function(){ copyText(link); };
+  openModal("maskQR");
+}
 Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function(el){
   el.addEventListener("click", function(){ closeModal(el.getAttribute("data-close")); });
 });
@@ -1302,16 +1435,85 @@ function renderSchoolPane(){
     '<div class="sect">学校 / 班级 列表</div>' +
     '<div class="tree" id="scTree"></div>';
 
-  /* 学校 / 班级 层级列表 */
+  /* 学校 / 班级 层级列表（含家长分享链接、二维码、重置、公开开关） */
+  var base = siteBase();
   $("scTree").innerHTML = data.schools.map(function(x){
     var cls = classesOfSchool(x.id);
     var head = '<div class="srow"><img class="em" src="' + esc(x.emblem || DEFAULT_EMBLEM) + '" alt="">' +
       esc(x.name) + '<span class="meta">' + esc(x.location || "未设置定位") + ' · ' + cls.length + ' 个班级</span></div>';
     var rows = cls.length
-      ? cls.map(function(c){ return '<div class="crow">' + esc(c.name) + '<span class="meta">' + (tt(c.id).grid.flat().filter(Boolean).length) + ' 节课/周</span></div>'; }).join("")
+      ? cls.map(function(c){
+          var link = publicLink(c.public_code);
+          return '<div class="crow">' +
+            '<span class="cname">' + esc(c.name) + '</span>' +
+            (base
+              ? '<input class="in link-in" readonly value="' + esc(link) + '" onclick="this.select()">' +
+                '<button class="btn sm ghost" data-op="copy" data-id="' + c.id + '">复制链接</button>' +
+                '<button class="btn sm ghost" data-op="qr" data-id="' + c.id + '" data-name="' + esc(x.name + c.name) + '">二维码</button>' +
+                '<button class="btn sm ghost" data-op="reset" data-id="' + c.id + '">重置链接</button>'
+              : '<span class="meta">（部署到线上后自动生成分享链接）</span>') +
+            '<button class="btn sm ghost" data-op="toggle" data-id="' + c.id + '" data-pub="' + (c.isPublic === false ? "0" : "1") + '">' +
+              (c.isPublic === false ? "已关闭公开" : "公开中") + '</button>' +
+            '<button class="btn sm danger" data-op="delcls" data-id="' + c.id + '">删除班级</button>' +
+            '<span class="meta">' + (tt(c.id).grid.flat().filter(Boolean).length) + ' 节课/周</span>' +
+            '</div>';
+        }).join("")
       : '<div class="crow" style="color:#b7b0c4">（该学校下暂无班级）</div>';
     return head + rows;
   }).join("");
+
+  Array.prototype.forEach.call($("scTree").querySelectorAll("[data-op]"), function(el){
+    el.addEventListener("click", async function(){
+      var op = el.getAttribute("data-op"), cid2 = el.getAttribute("data-id");
+      var cls = classById(cid2);
+      if(!cls) return;
+      if(op === "copy"){
+        copyText(publicLink(cls.public_code));
+        return;
+      }
+      if(op === "qr"){ showQR(cls, el.getAttribute("data-name")); return; }
+      if(op === "reset"){
+        if(!confirm("重置后旧链接与旧二维码立即失效，需要用新链接重新发给家长。确定重置「" + cls.name + "」的链接吗？")) return;
+        if(cloudOn()){
+          try{
+            var r = await cloudRpc("api_reset_class_code", { p_token:CLOUD.token, p_class:cid2 });
+            await cloudRefresh();
+            toast("已重置，新链接短码：" + r.public_code);
+          }catch(e){ toast(String(e.message)); return; }
+        }else{
+          cls.public_code = uid("k").slice(-6); saveData();
+        }
+        renderSchoolPane(); return;
+      }
+      if(op === "toggle"){
+        var want = el.getAttribute("data-pub") !== "1";
+        if(cloudOn()){
+          try{
+            await cloudRpc("api_set_class_public", { p_token:CLOUD.token, p_class:cid2, p_public:want });
+            await cloudRefresh();
+          }catch(e){ toast(String(e.message)); return; }
+        }else{
+          cls.isPublic = want; saveData();
+        }
+        renderSchoolPane(); toast(want ? "已开启公开访问" : "已关闭公开访问（家长打开会提示联系班主任）");
+        return;
+      }
+      if(op === "delcls"){
+        if(!confirm("删除班级「" + cls.name + "」？该班课表与消息会一并删除。")) return;
+        if(cloudOn()){
+          try{ await cloudRpc("api_delete_class", { p_token:CLOUD.token, p_id:cid2 }); await cloudRefresh(); }
+          catch(e){ toast(String(e.message)); return; }
+        }else{
+          data.classes = data.classes.filter(function(c){ return c.id !== cid2; });
+          delete data.timetables[cid2];
+          data.messages = data.messages.filter(function(m){ return m.classId !== cid2; });
+          saveData();
+        }
+        renderSchoolPane(); renderTable(); toast("班级已删除");
+        return;
+      }
+    });
+  });
 
   $("scPick").addEventListener("change", function(){ scEditId = $("scPick").value; renderSchoolPane(); });
   $("scSave").addEventListener("click", async function(){
@@ -1794,7 +1996,8 @@ function renderMsgPaneList(cid){
     attachBoxHtml("mp") +
     '<label>置顶</label><div class="row"><input type="checkbox" id="mpPin"><span class="hint">置顶后长期显示</span></div>' +
     '</div><div class="row" style="margin-top:10px"><button class="btn" id="mpAdd">发布消息</button></div>';
-  h += '<div class="sect">消息列表（' + esc(className(cid)) + '，共 ' + all.length + ' 条）</div>';
+  h += '<div class="sect">消息列表（' + esc(className(cid)) + '，共 ' + all.length + ' 条）</div>' +
+       '<div class="hint" style="margin-bottom:6px">家长通过公开链接能看到：置顶消息 + 近 7 天消息；更早的消息仅登录后可见。</div>';
   h += all.length ? all.map(function(m){ return msgItemHtml(m, editable); }).join("") : '<div class="hint">暂无消息</div>';
   $("mpList").innerHTML = h;
   bindAttach("mp", atts);
@@ -1839,18 +2042,30 @@ $("logoutLink").addEventListener("click", async function(){
     try{ await cloudRpc("api_logout", { p_token: CLOUD.token }); }catch(e){}
     CLOUD.token = null; CLOUD.userId = null; storeToken(null); CLOUD.online = false;
     try{ localStorage.removeItem(STORE_KEY); }catch(e){}
-    data = seedData();
-    renderAll(); renderSyncState(); toast("已退出登录（云端数据保留）");
+    /* 退出后若本机记得班级码，回到该班的公开浏览 */
+    var pc = null;
+    try{ pc = localStorage.getItem(PUB_KEY); }catch(e){}
+    if(pc && await tryPublic(pc)){
+      renderAll(); renderSyncState(); loadWeather(); toast("已退出登录，回到公开浏览");
+    }else{
+      data = seedData();
+      renderAll(); renderSyncState();
+      $("codeBanner").style.display = "block";
+      toast("已退出登录（云端数据保留）");
+    }
     return;
   }
   data.session = null; saveData(); renderAll(); toast("已退出登录");
 });
 
 (async function init(){
+  var code = urlCode();
+  if(!code){ try{ code = localStorage.getItem(PUB_KEY); }catch(e){} }
   if(cloudEnabled()){
     CLOUD.token = (function(){ try{ return localStorage.getItem(TOKEN_KEY); }catch(e){ return null; } })();
   }
   data = loadData();
+
   if(!cloudEnabled()){
     /* 本机模式：初始化默认账号密码 */
     var changed = false;
@@ -1860,7 +2075,7 @@ $("logoutLink").addEventListener("click", async function(){
     }
     if(changed) saveData();
   }else if(CLOUD.token){
-    /* 云端模式：用已保存的登录令牌自动恢复会话 */
+    /* 有登录令牌：进入完整模式 */
     try{
       var bs = await cloudRpc("api_bootstrap", { p_token: CLOUD.token });
       applyCloud(bs);
@@ -1869,7 +2084,15 @@ $("logoutLink").addEventListener("click", async function(){
       if(String(e.message).indexOf("登录已过期") >= 0 || String(e.message).indexOf("请先登录") >= 0){
         CLOUD.token = null; storeToken(null);
       }
+      /* 登录失效则退回公开浏览 */
+      if(code){ await tryPublic(code); }
     }
+  }else if(code){
+    /* 未登录 + 有班级短码：公开只读浏览 */
+    await tryPublic(code);
+  }else{
+    /* 未登录且没有班级码：给出提示，允许手动输入班级码 */
+    $("codeBanner").style.display = "block";
   }
   renderAll();
   renderSyncState();
@@ -1879,6 +2102,40 @@ $("logoutLink").addEventListener("click", async function(){
   /* 每 5 分钟自动同步一次云端数据（多人协作时能看到彼此的最新内容） */
   setInterval(function(){ if(cloudOn()) cloudRefresh(); }, 5 * 60 * 1000);
 })();
+
+/* 手动输入班级码查看 */
+document.addEventListener("DOMContentLoaded", function(){});
+$("codeGo").addEventListener("click", async function(){
+  var c = $("codeInput").value.trim().toLowerCase();
+  if(!c){ toast("请输入班级码"); return; }
+  var ok = await tryPublic(c);
+  if(ok){
+    $("codeBanner").style.display = "none";
+    renderAll(); renderSyncState(); loadWeather();
+    toast("已进入「" + className(viewClassId()) + "」公开浏览");
+  }
+});
+$("codeInput").addEventListener("keydown", function(ev){ if(ev.key === "Enter") $("codeGo").click(); });
+
+/* 公开只读加载（失败时给出友好提示） */
+async function tryPublic(code){
+  try{
+    var d = await cloudRpc("api_public", { p_code: code }, 12000);
+    applyPublic(d);
+    var cb = $("codeBanner"); if(cb) cb.style.display = "none";
+    return true;
+  }catch(e){
+    var msg = String(e.message || "");
+    PUBLIC.mode = false;
+    if(msg.indexOf("公开访问已被关闭") < 0 && msg.indexOf("班级码") < 0 && navigator.onLine){
+      toast("班级码无效或已失效：" + code + "（请向班主任索取新链接）");
+    }else{
+      toast(msg);
+    }
+    var cb2 = $("codeBanner"); if(cb2) cb2.style.display = "block";
+    return false;
+  }
+}
 </script>
 </body>
 </html>
